@@ -11,12 +11,30 @@ public static class SensorEndpoints
         var group = app.MapGroup("/api/sensors")
             .WithTags("Sensors");
 
-        group.MapPost("/", (SensorRegistrationRequest request, SensorService service) =>
-        {
-            var sensor = service.RegisterSensor(request);
+        group.MapPost(
+    "/",
+    (
+        SensorRegistrationRequest request,
+        SensorService sensorService,
+        ValidationService validationService) =>
+    {
+        var validation = validationService.ValidateSensor(request);
 
-            return Results.Created($"/api/sensors/{sensor.Id}", sensor);
-        });
+        if (!validation.IsValid)
+        {
+            return Results.BadRequest(new
+            {
+                message = "Sensor registration failed validation.",
+                errors = validation.Errors
+            });
+        }
+
+        var sensor = sensorService.RegisterSensor(request);
+
+        return Results.Created(
+            $"/api/sensors/{sensor.Id}",
+            sensor);
+    });
 
         group.MapGet("/", (SensorService service) =>
         {

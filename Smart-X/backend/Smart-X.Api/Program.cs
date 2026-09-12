@@ -15,6 +15,7 @@ namespace Smart_X.Api
             });
 
             builder.Services.AddSingleton<SensorService>();
+            builder.Services.AddSingleton<ValidationService>();
             builder.Services.AddOpenApi();
 
             builder.Services.AddCors(options =>
