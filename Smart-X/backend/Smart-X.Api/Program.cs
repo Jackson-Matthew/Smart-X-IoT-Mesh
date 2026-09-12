@@ -1,3 +1,4 @@
+using Smart_X.Api.Services;
 namespace Smart_X.Api
 {
     public class Program
@@ -6,6 +7,7 @@ namespace Smart_X.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddSingleton<SensorService>();
             builder.Services.AddOpenApi();
 
             builder.Services.AddCors(options =>
