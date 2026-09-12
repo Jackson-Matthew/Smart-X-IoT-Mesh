@@ -1,13 +1,6 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\Smart-X",
-    "\\Smart-X\\backend\\Smart-X.Api",
-    "\\Smart-X\\frontend",
-    "\\Smart-X\\frontend\\smartx-dashboard",
-    "\\Smart-X\\frontend\\smartx-dashboard\\src",
-    "\\Smart-X\\frontend\\smartx-dashboard\\src\\services"
+    ""
   ],
-  "SelectedNode": "\\Smart-X\\.gitignore",
   "PreviewInSolutionExplorer": false
 }
