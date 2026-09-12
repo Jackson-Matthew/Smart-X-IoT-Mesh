@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\models\\deploymentnode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\models\\deploymentnode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\endpoints\\sensorendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\endpoints\\sensorendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -22,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -33,25 +37,34 @@
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DeploymentNode.cs",
+              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\DeploymentNode.cs",
+              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Models\\DeploymentNode.cs",
+              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\DeploymentNode.cs",
+              "RelativeToolTip": "backend\\Smart-X.Api\\Models\\DeploymentNode.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-12T17:20:23.757Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "SensorEndpoints.cs",
               "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Endpoints\\SensorEndpoints.cs",
               "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Endpoints\\SensorEndpoints.cs",
               "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Endpoints\\SensorEndpoints.cs",
               "RelativeToolTip": "backend\\Smart-X.Api\\Endpoints\\SensorEndpoints.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-12T17:06:49.588Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ValidationService.cs",
               "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\ValidationService.cs",
               "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Services\\ValidationService.cs",
@@ -59,12 +72,11 @@
               "RelativeToolTip": "backend\\Smart-X.Api\\Services\\ValidationService.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAAwAQAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T17:04:48.59Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-12T17:04:48.59Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Program.cs",
               "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Program.cs",
@@ -72,8 +84,11 @@
               "RelativeToolTip": "backend\\Smart-X.Api\\Program.cs",
               "ViewState": "AgIAAAcAAAAAAAAAAAAzwBIAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T14:16:31.602Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-12T14:16:31.602Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
             }
           ]
         }
