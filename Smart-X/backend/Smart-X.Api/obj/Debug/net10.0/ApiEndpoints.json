@@ -83,5 +83,69 @@
     "Tags": [
       "Sensors"
     ]
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.TelemetryController",
+    "Method": "GetTelemetry",
+    "RelativePath": "api/Telemetry/{deviceIdentifier}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "deviceIdentifier",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.TelemetryController",
+    "Method": "SubmitActuatorTelemetry",
+    "RelativePath": "api/Telemetry/actuator",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "packet",
+        "Type": "Smart_X.Api.Models.TelemetryPacket\u00601[[Smart_X.Api.Models.Telemetry.ActuatorTelemetry, Smart-X.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.TelemetryController",
+    "Method": "SubmitEnvironmentalTelemetry",
+    "RelativePath": "api/Telemetry/environmental",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "packet",
+        "Type": "Smart_X.Api.Models.TelemetryPacket\u00601[[Smart_X.Api.Models.Telemetry.EnvironmentalTelemetry, Smart-X.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.TelemetryController",
+    "Method": "SubmitPowerTelemetry",
+    "RelativePath": "api/Telemetry/power",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "packet",
+        "Type": "Smart_X.Api.Models.TelemetryPacket\u00601[[Smart_X.Api.Models.Telemetry.PowerConsumptionTelemetry, Smart-X.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

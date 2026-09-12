@@ -26,7 +26,7 @@ namespace Smart_X.Api.Services
 
         public List<Sensor> GetAllSensors()
         {
-            return _sensors;
+            return _sensors.ToList();
         }
 
         public Sensor? GetSensorById(Guid id)

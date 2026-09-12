@@ -22,43 +22,53 @@ namespace Smart_X.Api.Controllers
 
         [HttpPost("environmental")]
         public async Task<IActionResult> SubmitEnvironmentalTelemetry(
-            [FromBody] TelemetryPacket<EnvironmentalTelemetry> packet)
+    [FromBody] TelemetryPacket<EnvironmentalTelemetry> packet)
         {
-            await _telemetryService.ProcessTelemetryAsync(packet);
-
-            return Ok(new
-            {
-                message = "Environmental telemetry processed successfully.",
-                packetId = packet.PacketId
-            });
+            return await ProcessTelemetry(packet);
         }
 
         [HttpPost("power")]
         public async Task<IActionResult> SubmitPowerTelemetry(
             [FromBody] TelemetryPacket<PowerConsumptionTelemetry> packet)
         {
-            await _telemetryService.ProcessTelemetryAsync(packet);
-
-            return Ok(new
-            {
-                message = "Power telemetry processed successfully.",
-                packetId = packet.PacketId
-            });
+            return await ProcessTelemetry(packet);
         }
 
         [HttpPost("actuator")]
         public async Task<IActionResult> SubmitActuatorTelemetry(
             [FromBody] TelemetryPacket<ActuatorTelemetry> packet)
         {
-            await _telemetryService.ProcessTelemetryAsync(packet);
-
-            return Ok(new
-            {
-                message = "Actuator telemetry processed successfully.",
-                packetId = packet.PacketId
-            });
+            return await ProcessTelemetry(packet);
         }
 
+        private async Task<IActionResult> ProcessTelemetry<T>(
+            TelemetryPacket<T> packet)
+        {
+            try
+            {
+                await _telemetryService.ProcessTelemetryAsync(packet);
+
+                return Ok(new
+                {
+                    message = "Telemetry processed successfully.",
+                    packetId = packet.PacketId
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    error = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    error = ex.Message
+                });
+            }
+        }
         [HttpGet("{deviceIdentifier}")]
         public async Task<IActionResult> GetTelemetry(
             string deviceIdentifier)

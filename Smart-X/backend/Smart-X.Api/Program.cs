@@ -15,10 +15,15 @@ namespace Smart_X.Api
                 options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+            builder.Services.AddControllers();
+
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();
             builder.Services.AddSingleton<DeploymentValidator>();
-            builder.Services.AddSingleton<SensorService>();
+            builder.Services.AddScoped<SensorService>();
             builder.Services.AddScoped<ITelemetryService, TelemetryService>();
             builder.Services.AddScoped<ITelemetryRepository, TelemetryRepository>();
             builder.Services.AddOpenApi();
@@ -39,6 +44,8 @@ namespace Smart_X.Api
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseHttpsRedirection();
@@ -56,6 +63,7 @@ namespace Smart_X.Api
             });
 
             app.MapSensorEndpoints();
+            app.MapControllers();
 
             app.Run();
         }
