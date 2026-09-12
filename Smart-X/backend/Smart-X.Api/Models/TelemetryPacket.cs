@@ -1,6 +1,6 @@
 ﻿namespace Smart_X.Api.Models
 {
-    public class TelemetryPacket<T>
+    public class TelemetryPacket<T> : ITelemetryPacket
     {
         public Guid PacketId { get; set; } = Guid.NewGuid();
 

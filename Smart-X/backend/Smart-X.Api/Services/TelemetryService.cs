@@ -4,12 +4,18 @@ namespace Smart_X.Api.Services
 {
     public class TelemetryService : ITelemetryService
     {
-        public Task ProcessTelemetryAsync<T>(TelemetryPacket<T> packet)
+        private readonly ITelemetryRepository _telemetryRepository;
+
+        public TelemetryService(
+            ITelemetryRepository telemetryRepository)
         {
-            if (packet == null)
-            {
-                throw new ArgumentNullException(nameof(packet));
-            }
+            _telemetryRepository = telemetryRepository;
+        }
+
+        public async Task ProcessTelemetryAsync<T>(
+            TelemetryPacket<T> packet)
+        {
+            ArgumentNullException.ThrowIfNull(packet);
 
             if (string.IsNullOrWhiteSpace(packet.DeviceIdentifier))
             {
@@ -25,7 +31,7 @@ namespace Smart_X.Api.Services
                     nameof(packet));
             }
 
-            return Task.CompletedTask;
+            await _telemetryRepository.AddAsync(packet);
         }
     }
 }

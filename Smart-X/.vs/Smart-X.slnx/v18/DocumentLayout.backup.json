@@ -3,32 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\services\\telemetryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\services\\telemetryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\services\\itelemetryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\services\\itelemetryservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\models\\telemetry\\actuatortelemetry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\models\\telemetry\\actuatortelemetry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\models\\telemetry\\powerconsumptiontelemetry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\models\\telemetry\\powerconsumptiontelemetry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\models\\telemetry\\environmentaltelemetry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\models\\telemetry\\environmentaltelemetry.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\models\\telemetrypacket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\models\\telemetrypacket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|c:\\users\\matth\\onedrive\\desktop\\github\\prog7312-2026-prog7312-part-1-jackson-matthew\\smart-x\\backend\\smart-x.api\\services\\telemetryrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7A55CDF-4142-0408-B82E-5AA05E22A157}|backend\\Smart-X.Api\\Smart-X.Api.csproj|solutionrelative:backend\\smart-x.api\\services\\telemetryrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,8 +22,34 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 8,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TelemetryService.cs",
+              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\TelemetryService.cs",
+              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Services\\TelemetryService.cs",
+              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\TelemetryService.cs",
+              "RelativeToolTip": "backend\\Smart-X.Api\\Services\\TelemetryService.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAA0wCQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-12T19:06:15.672Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Program.cs",
+              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Program.cs",
+              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Program.cs",
+              "RelativeToolTip": "backend\\Smart-X.Api\\Program.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAQwBcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-12T19:05:12.562Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
@@ -50,90 +60,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "TelemetryService.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\TelemetryService.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Services\\TelemetryService.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\TelemetryService.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Services\\TelemetryService.cs",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAUwB4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T18:48:16.71Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "ITelemetryService.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\ITelemetryService.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Services\\ITelemetryService.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\ITelemetryService.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Services\\ITelemetryService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Title": "TelemetryRepository.cs",
+              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\TelemetryRepository.cs",
+              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Services\\TelemetryRepository.cs",
+              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Services\\TelemetryRepository.cs",
+              "RelativeToolTip": "backend\\Smart-X.Api\\Services\\TelemetryRepository.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAuwCIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T18:45:51.019Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ActuatorTelemetry.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\Telemetry\\ActuatorTelemetry.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Models\\Telemetry\\ActuatorTelemetry.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\Telemetry\\ActuatorTelemetry.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Models\\Telemetry\\ActuatorTelemetry.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T18:38:06.105Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "PowerConsumptionTelemetry.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\Telemetry\\PowerConsumptionTelemetry.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Models\\Telemetry\\PowerConsumptionTelemetry.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\Telemetry\\PowerConsumptionTelemetry.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Models\\Telemetry\\PowerConsumptionTelemetry.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T18:37:06.629Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "EnvironmentalTelemetry.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\Telemetry\\EnvironmentalTelemetry.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Models\\Telemetry\\EnvironmentalTelemetry.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\Telemetry\\EnvironmentalTelemetry.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Models\\Telemetry\\EnvironmentalTelemetry.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T18:36:00.819Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "TelemetryPacket.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\TelemetryPacket.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Models\\TelemetryPacket.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Models\\TelemetryPacket.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Models\\TelemetryPacket.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T18:27:24.803Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Program.cs",
-              "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Program.cs",
-              "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Program.cs",
-              "RelativeToolTip": "backend\\Smart-X.Api\\Program.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAQwBUAAAAqAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-12T14:16:31.602Z",
+              "WhenOpened": "2026-09-12T19:01:44.039Z",
               "EditorCaption": ""
             },
             {
