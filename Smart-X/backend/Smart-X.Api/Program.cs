@@ -1,4 +1,5 @@
 using Smart_X.Api.Services;
+using SmartX.Api.Endpoints;
 namespace Smart_X.Api
 {
     public class Program
@@ -41,6 +42,8 @@ namespace Smart_X.Api
                     version = "1.0"
                 });
             });
+
+            app.MapSensorEndpoints();
 
             app.Run();
         }
