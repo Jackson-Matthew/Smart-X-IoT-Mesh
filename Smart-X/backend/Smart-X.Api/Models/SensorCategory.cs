@@ -1,8 +1,10 @@
-﻿namespace Smart_X.Api.Models
+﻿using System.Text.Json.Serialization;
+namespace Smart_X.Api.Models
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SensorCategory
     {
-        Enviromental,
+        Environmental,
         PowerConsumption,
         Actuator,
     }

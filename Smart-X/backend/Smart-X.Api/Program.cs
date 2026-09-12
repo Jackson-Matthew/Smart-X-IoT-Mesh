@@ -1,5 +1,6 @@
 using Smart_X.Api.Services;
 using SmartX.Api.Endpoints;
+using System.Text.Json.Serialization;
 namespace Smart_X.Api
 {
     public class Program
@@ -7,6 +8,11 @@ namespace Smart_X.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.ConfigureHttpJsonOptions(options =>
+            {
+                options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddOpenApi();
