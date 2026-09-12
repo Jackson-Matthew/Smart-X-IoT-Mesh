@@ -1,5 +1,6 @@
 using Smart_X.Api.Services;
 using SmartX.Api.Endpoints;
+using Smart_X.Api.Utilities;
 using System.Text.Json.Serialization;
 namespace Smart_X.Api
 {
@@ -16,6 +17,7 @@ namespace Smart_X.Api
 
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();
+            builder.Services.AddSingleton<DeploymentValidator>();
             builder.Services.AddOpenApi();
 
             builder.Services.AddCors(options =>
