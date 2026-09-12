@@ -23,9 +23,9 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();
             builder.Services.AddSingleton<DeploymentValidator>();
-            builder.Services.AddScoped<SensorService>();
-            builder.Services.AddScoped<ITelemetryService, TelemetryService>();
-            builder.Services.AddScoped<ITelemetryRepository, TelemetryRepository>();
+            builder.Services.AddSingleton<SensorService>();
+            builder.Services.AddSingleton<ITelemetryService, TelemetryService>();
+            builder.Services.AddSingleton<ITelemetryRepository, TelemetryRepository>();
             builder.Services.AddOpenApi();
 
             builder.Services.AddCors(options =>

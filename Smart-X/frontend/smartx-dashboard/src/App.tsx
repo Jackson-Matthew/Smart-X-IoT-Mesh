@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getHealth, type HealthResponse } from "./services/api";
+import {
+    getHealth,
+    getSensors,
+    type HealthResponse,
+    type Sensor,
+} from "./services/api";
 
 function App() {
 
@@ -7,13 +12,28 @@ function App() {
     console.log("TEST:", import.meta.env.VITE_TEST);
 
     const [health, setHealth] = useState<HealthResponse | null>(null);
+    const [sensors, setSensors] = useState<Sensor[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         getHealth()
             .then(setHealth)
             .catch((err) => {
-                setError(err instanceof Error ? err.message : "API connection failed.");
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "API connection failed."
+                );
+            });
+
+        getSensors()
+            .then(setSensors)
+            .catch((err) => {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Unable to retrieve sensors."
+                );
             });
     }, []);
 
@@ -25,6 +45,7 @@ function App() {
             </header>
 
             <main>
+
                 <section>
                     <h2>Smart-X Gateway</h2>
 
@@ -34,7 +55,8 @@ function App() {
 
                     {health && (
                         <p>
-                            Gateway Status: <strong>{health.status}</strong>
+                            Gateway Status:{" "}
+                            <strong>{health.status}</strong>
                         </p>
                     )}
 
@@ -42,6 +64,50 @@ function App() {
                         <p>
                             Gateway Status: <strong>Offline</strong>
                         </p>
+                    )}
+                </section>
+
+                <section>
+                    <h2>Registered Sensors</h2>
+
+                    {sensors.length === 0 ? (
+                        <p>No sensors registered.</p>
+                    ) : (
+                        sensors.map((sensor) => (
+                            <article key={sensor.id}>
+                                <h3>{sensor.deviceIdentifier}</h3>
+
+                                <p>
+                                    Category: {sensor.category}
+                                </p>
+
+                                <p>
+                                    Location: {sensor.deploymentLocation}
+                                </p>
+
+                                <p>
+                                    MAC Address: {sensor.macAddress}
+                                </p>
+
+                                <p>
+                                    Status:{" "}
+                                    <strong>
+                                        {sensor.isOnline
+                                            ? "Online"
+                                            : "Offline"}
+                                    </strong>
+                                </p>
+
+                                <p>
+                                    Last Seen:{" "}
+                                    {sensor.lastSeen
+                                        ? new Date(
+                                            sensor.lastSeen
+                                        ).toLocaleString()
+                                        : "Never"}
+                                </p>
+                            </article>
+                        ))
                     )}
                 </section>
 
@@ -63,6 +129,7 @@ function App() {
                         <p>Disabled — Final PoE</p>
                     </article>
                 </section>
+
             </main>
         </div>
     );
