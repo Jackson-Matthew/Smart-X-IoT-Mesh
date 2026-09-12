@@ -68,27 +68,22 @@
               "RelativeDocumentMoniker": ".gitignore",
               "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\.gitignore",
               "RelativeToolTip": ".gitignore",
-              "ViewState": "AgIAABUAAAAAAAAAAAAAACYAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2026-09-12T11:59:48.456Z",
               "EditorCaption": ""
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
-            },
-            {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Smart-X.Api",
+              "Title": "Smart-X.Api.csproj",
               "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "RelativeToolTip": "backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-09-12T11:16:42.256Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-12T11:16:42.256Z"
             },
             {
               "$type": "Document",
@@ -100,8 +95,7 @@
               "RelativeToolTip": "frontend\\smartx-dashboard\\vite.config.ts",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-12T11:21:24.929Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-12T11:21:24.929Z"
             },
             {
               "$type": "Document",
@@ -161,8 +155,7 @@
               "RelativeToolTip": "frontend\\smartx-dashboard\\src\\App.tsx",
               "ViewState": "AgIAAC0AAAAAAAAAAAAIwDcAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-11T12:21:33.805Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-11T12:21:33.805Z"
             },
             {
               "$type": "Document",
@@ -174,8 +167,7 @@
               "RelativeToolTip": "frontend\\smartx-dashboard\\src\\services\\api.ts",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-11T12:20:25.739Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-11T12:20:25.739Z"
             },
             {
               "$type": "Document",
@@ -188,6 +180,10 @@
               "ViewState": "AgIAAAoAAAAAAAAAAAAQwBUAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-11T12:01:13.185Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
             }
           ]
         }
