@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import {
     getHealth,
     getSensors,
+    getTelemetry,
     type HealthResponse,
     type Sensor,
+    type TelemetryPacket,
 } from "./services/api";
-
 function App() {
 
     console.log("API URL:", import.meta.env.VITE_API_BASE_URL);
@@ -13,6 +14,11 @@ function App() {
 
     const [health, setHealth] = useState<HealthResponse | null>(null);
     const [sensors, setSensors] = useState<Sensor[]>([]);
+    const [selectedSensor, setSelectedSensor] =
+        useState<Sensor | null>(null);
+
+    const [telemetry, setTelemetry] =
+        useState<TelemetryPacket<unknown>[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -36,6 +42,22 @@ function App() {
                 );
             });
     }, []);
+    useEffect(() => {
+        if (!selectedSensor) {
+            setTelemetry([]);
+            return;
+        }
+
+        getTelemetry(selectedSensor.deviceIdentifier)
+            .then(setTelemetry)
+            .catch((err) => {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Unable to retrieve telemetry."
+                );
+            });
+    }, [selectedSensor]);
 
     return (
         <div>
@@ -73,8 +95,17 @@ function App() {
                     {sensors.length === 0 ? (
                         <p>No sensors registered.</p>
                     ) : (
-                        sensors.map((sensor) => (
-                            <article key={sensor.id}>
+                            sensors.map((sensor) => (
+                                <article
+                                    key={sensor.id}
+                                    onClick={() => setSelectedSensor(sensor)}
+                                    style={{
+                                        cursor: "pointer",
+                                        border: "1px solid #ccc",
+                                        padding: "16px",
+                                        marginBottom: "10px",
+                                    }}
+                                >
                                 <h3>{sensor.deviceIdentifier}</h3>
 
                                 <p>
@@ -108,6 +139,50 @@ function App() {
                                 </p>
                             </article>
                         ))
+                    )}
+                </section>
+
+                <section>
+                    <h2>Telemetry</h2>
+
+                    {!selectedSensor && (
+                        <p>Select a sensor to view its telemetry.</p>
+                    )}
+
+                    {selectedSensor && (
+                        <>
+                            <h3>
+                                {selectedSensor.deviceIdentifier}
+                            </h3>
+
+                            {telemetry.length === 0 ? (
+                                <p>No telemetry available.</p>
+                            ) : (
+                                telemetry.map((packet) => (
+                                    <article key={packet.packetId}>
+                                        <p>
+                                            <strong>Type:</strong>{" "}
+                                            {packet.telemetryType}
+                                        </p>
+
+                                        <p>
+                                            <strong>Time:</strong>{" "}
+                                            {new Date(
+                                                packet.timestamp
+                                            ).toLocaleString()}
+                                        </p>
+
+                                        <pre>
+                                            {JSON.stringify(
+                                                packet.data,
+                                                null,
+                                                2
+                                            )}
+                                        </pre>
+                                    </article>
+                                ))
+                            )}
+                        </>
                     )}
                 </section>
 
