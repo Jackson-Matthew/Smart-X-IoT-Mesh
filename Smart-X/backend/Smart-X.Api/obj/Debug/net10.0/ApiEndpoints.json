@@ -147,5 +147,15 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.TelemetryHistoryController",
+    "Method": "GetHistory",
+    "RelativePath": "api/TelemetryHistory",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   }
 ]

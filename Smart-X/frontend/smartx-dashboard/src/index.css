@@ -312,3 +312,71 @@ textarea {
     .reading-card strong {
         font-size: 24px;
     }
+.registration-section {
+    margin-bottom: 40px;
+}
+
+.registration-form {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+    .form-group label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #374151;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: white;
+        outline: none;
+    }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2563eb;
+        }
+
+.register-button {
+    grid-column: 1 / -1;
+    padding: 13px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+    .register-button:hover {
+        background: #1d4ed8;
+    }
+
+    .register-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+.success-banner {
+    margin-top: 15px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #166534;
+}

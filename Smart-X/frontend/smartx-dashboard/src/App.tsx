@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
     getHealth,
     getSensors,
     getTelemetry,
+    registerSensor,
     type HealthResponse,
     type Sensor,
     type TelemetryPacket,
 } from "./services/api";
+
+function renderValue(value: unknown, fallback = "--"): string {
+    return value === null || value === undefined ? fallback : String(value);
+}
 
 function renderTelemetryData(
     telemetryType: string,
@@ -24,21 +29,21 @@ function renderTelemetryData(
                 <div className="reading-card">
                     <span>Temperature</span>
                     <strong>
-                        {values.temperature ?? "--"} °C
+                        {renderValue(values.temperature)} °C
                     </strong>
                 </div>
 
                 <div className="reading-card">
                     <span>Humidity</span>
                     <strong>
-                        {values.humidity ?? "--"} %
+                        {renderValue(values.humidity)} %
                     </strong>
                 </div>
 
                 <div className="reading-card">
                     <span>Pressure</span>
                     <strong>
-                        {values.pressure ?? "--"} hPa
+                        {renderValue(values.pressure)} hPa
                     </strong>
                 </div>
             </div>
@@ -51,28 +56,28 @@ function renderTelemetryData(
                 <div className="reading-card">
                     <span>Voltage</span>
                     <strong>
-                        {values.voltage ?? "--"} V
+                        {renderValue(values.voltage)} V
                     </strong>
                 </div>
 
                 <div className="reading-card">
                     <span>Current</span>
                     <strong>
-                        {values.current ?? "--"} A
+                        {renderValue(values.current)} A
                     </strong>
                 </div>
 
                 <div className="reading-card">
                     <span>Power</span>
                     <strong>
-                        {values.power ?? "--"} W
+                        {renderValue(values.power)} W
                     </strong>
                 </div>
 
                 <div className="reading-card">
                     <span>Energy Consumed</span>
                     <strong>
-                        {values.energyConsumed ?? "--"} kWh
+                        {renderValue(values.energyConsumed)} kWh
                     </strong>
                 </div>
             </div>
@@ -85,14 +90,14 @@ function renderTelemetryData(
                 <div className="reading-card">
                     <span>State</span>
                     <strong>
-                        {String(values.state ?? "--")}
+                        {renderValue(values.state)}
                     </strong>
                 </div>
 
                 <div className="reading-card">
                     <span>Value</span>
                     <strong>
-                        {values.value ?? "--"}
+                        {renderValue(values.value)}
                     </strong>
                 </div>
             </div>
@@ -111,6 +116,13 @@ function App() {
     const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
     const [telemetry, setTelemetry] =
         useState<TelemetryPacket<unknown>[]>([]);
+    const [deviceIdentifier, setDeviceIdentifier] = useState("");
+    const [macAddress, setMacAddress] = useState("");
+    const [deploymentLocation, setDeploymentLocation] = useState("");
+    const [category, setCategory] = useState("Environmental");
+    const [registrationMessage, setRegistrationMessage] =
+        useState<string | null>(null);
+    const [isRegistering, setIsRegistering] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -152,7 +164,73 @@ function App() {
             });
     }, [selectedSensor]);
 
+
+    const handleRegisterSensor = async (
+        event: FormEvent<HTMLFormElement>
+    ) => {
+        event.preventDefault();
+
+        setError(null);
+        setRegistrationMessage(null);
+
+        if (!deviceIdentifier.trim()) {
+            setError("Device identifier is required.");
+            return;
+        }
+
+        const macPattern =
+            /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
+
+        if (!macPattern.test(macAddress.trim())) {
+            setError(
+                "Please enter a valid MAC address, for example AA:BB:CC:DD:EE:01."
+            );
+            return;
+        }
+
+        if (!deploymentLocation.trim()) {
+            setError("Deployment location is required.");
+            return;
+        }
+
+        try {
+            setIsRegistering(true);
+
+            const newSensor = await registerSensor({
+                deviceIdentifier: deviceIdentifier.trim(),
+                macAddress: macAddress.trim(),
+                deploymentLocation: deploymentLocation.trim(),
+                category,
+            });
+
+            setSensors((currentSensors) => [
+                ...currentSensors,
+                newSensor,
+            ]);
+
+            setRegistrationMessage(
+                `Sensor ${newSensor.deviceIdentifier} registered successfully.`
+            );
+
+            setDeviceIdentifier("");
+            setMacAddress("");
+            setDeploymentLocation("");
+            setCategory("Environmental");
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Unable to register sensor."
+            );
+        } finally {
+            setIsRegistering(false);
+        }
+    };
+
+
     return (
+
+
         <div className="app">
 
             <header className="dashboard-header">
@@ -187,6 +265,108 @@ function App() {
 
             <main className="dashboard">
 
+                <section className="registration-section">
+                    <div className="section-heading">
+                        <div>
+                            <h2>Register Sensor</h2>
+                            <p>
+                                Add a new Smart-X device to the monitoring system
+                            </p>
+                        </div>
+                    </div>
+
+                    <form
+                        className="registration-form"
+                        onSubmit={handleRegisterSensor}
+                    >
+                        <div className="form-group">
+                            <label htmlFor="deviceIdentifier">
+                                Device Identifier
+                            </label>
+                            <input
+                                id="deviceIdentifier"
+                                type="text"
+                                placeholder="e.g. TEMP-002"
+                                value={deviceIdentifier}
+                                onChange={(event) =>
+                                    setDeviceIdentifier(event.target.value)
+                                }
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="macAddress">
+                                MAC Address
+                            </label>
+                            <input
+                                id="macAddress"
+                                type="text"
+                                placeholder="AA:BB:CC:DD:EE:04"
+                                value={macAddress}
+                                onChange={(event) =>
+                                    setMacAddress(event.target.value)
+                                }
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="deploymentLocation">
+                                Deployment Location
+                            </label>
+                            <input
+                                id="deploymentLocation"
+                                type="text"
+                                placeholder="Building A - Room 102"
+                                value={deploymentLocation}
+                                onChange={(event) =>
+                                    setDeploymentLocation(event.target.value)
+                                }
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="category">
+                                Sensor Category
+                            </label>
+                            <select
+                                id="category"
+                                value={category}
+                                onChange={(event) =>
+                                    setCategory(event.target.value)
+                                }
+                            >
+                                <option value="Environmental">
+                                    Environmental
+                                </option>
+                                <option value="PowerConsumption">
+                                    Power Consumption
+                                </option>
+                                <option value="Actuator">
+                                    Actuator
+                                </option>
+                            </select>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="register-button"
+                            disabled={isRegistering}
+                        >
+                            {isRegistering
+                                ? "Registering..."
+                                : "Register Sensor"}
+                        </button>
+                    </form>
+
+                    {registrationMessage && (
+                        <div className="success-banner">
+                            {registrationMessage}
+                        </div>
+                    )}
+                </section>
                 <section className="overview">
                     <div className="overview-card">
                         <span>Total Sensors</span>

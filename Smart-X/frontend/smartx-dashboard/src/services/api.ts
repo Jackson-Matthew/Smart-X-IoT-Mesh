@@ -63,6 +63,32 @@ export async function getSensors(): Promise<Sensor[]> {
     return response.json();
 }
 
+export async function registerSensor(sensor: {
+    deviceIdentifier: string;
+    macAddress: string;
+    deploymentLocation: string;
+    category: string;
+}): Promise<Sensor> {
+    const response = await fetch(`${API_BASE_URL}/api/Sensors`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sensor),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+            errorData?.error ||
+            "Unable to register sensor."
+        );
+    }
+
+    return response.json();
+}
+
 export async function getTelemetry(
     deviceIdentifier: string
 ): Promise<TelemetryPacket<unknown>[]> {
