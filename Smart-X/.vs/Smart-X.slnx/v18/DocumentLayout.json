@@ -48,7 +48,7 @@
               "RelativeDocumentMoniker": "frontend\\smartx-dashboard\\src\\index.css",
               "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\frontend\\smartx-dashboard\\src\\index.css",
               "RelativeToolTip": "frontend\\smartx-dashboard\\src\\index.css",
-              "ViewState": "AgIAAD8DAAAAAAAAAAAUwKQDAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAFUCAAAAAAAAAAAAAGAAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
               "WhenOpened": "2026-09-13T23:31:49.165Z",
               "EditorCaption": ""
@@ -74,7 +74,7 @@
               "RelativeDocumentMoniker": "frontend\\smartx-dashboard\\src\\App.tsx",
               "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\frontend\\smartx-dashboard\\src\\App.tsx",
               "RelativeToolTip": "frontend\\smartx-dashboard\\src\\App.tsx",
-              "ViewState": "AgIAADoEAAAAAAAAAAAAAEwEAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADQFAAAAAAAAAAAUwEwFAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
               "WhenOpened": "2026-09-13T23:24:57.694Z",
               "EditorCaption": ""
@@ -82,15 +82,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "Smart-X.Api",
+              "Title": "Smart-X.Api.csproj",
               "DocumentMoniker": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "RelativeDocumentMoniker": "backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "ToolTip": "C:\\Users\\matth\\OneDrive\\Desktop\\GitHub\\prog7312-2026-prog7312-part-1-jackson-matthew\\Smart-X\\backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "RelativeToolTip": "backend\\Smart-X.Api\\Smart-X.Api.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-09-13T23:18:50.381Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-13T23:18:50.381Z"
             }
           ]
         }
