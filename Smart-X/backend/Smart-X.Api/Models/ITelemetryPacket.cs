@@ -9,5 +9,7 @@
         DateTime Timestamp { get; }
 
         string TelemetryType { get; }
+
+        object Data { get; }
     }
 }

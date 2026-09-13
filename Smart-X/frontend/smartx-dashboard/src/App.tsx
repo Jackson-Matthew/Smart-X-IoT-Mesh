@@ -7,16 +7,108 @@ import {
     type Sensor,
     type TelemetryPacket,
 } from "./services/api";
+
+function renderTelemetryData(
+    telemetryType: string,
+    data: unknown
+) {
+    if (!data || typeof data !== "object") {
+        return <p>No telemetry data available.</p>;
+    }
+
+    const values = data as Record<string, unknown>;
+
+    if (telemetryType === "Environmental") {
+        return (
+            <div className="reading-grid">
+                <div className="reading-card">
+                    <span>Temperature</span>
+                    <strong>
+                        {values.temperature ?? "--"} °C
+                    </strong>
+                </div>
+
+                <div className="reading-card">
+                    <span>Humidity</span>
+                    <strong>
+                        {values.humidity ?? "--"} %
+                    </strong>
+                </div>
+
+                <div className="reading-card">
+                    <span>Pressure</span>
+                    <strong>
+                        {values.pressure ?? "--"} hPa
+                    </strong>
+                </div>
+            </div>
+        );
+    }
+
+    if (telemetryType === "PowerConsumption") {
+        return (
+            <div className="reading-grid">
+                <div className="reading-card">
+                    <span>Voltage</span>
+                    <strong>
+                        {values.voltage ?? "--"} V
+                    </strong>
+                </div>
+
+                <div className="reading-card">
+                    <span>Current</span>
+                    <strong>
+                        {values.current ?? "--"} A
+                    </strong>
+                </div>
+
+                <div className="reading-card">
+                    <span>Power</span>
+                    <strong>
+                        {values.power ?? "--"} W
+                    </strong>
+                </div>
+
+                <div className="reading-card">
+                    <span>Energy Consumed</span>
+                    <strong>
+                        {values.energyConsumed ?? "--"} kWh
+                    </strong>
+                </div>
+            </div>
+        );
+    }
+
+    if (telemetryType === "Actuator") {
+        return (
+            <div className="reading-grid">
+                <div className="reading-card">
+                    <span>State</span>
+                    <strong>
+                        {String(values.state ?? "--")}
+                    </strong>
+                </div>
+
+                <div className="reading-card">
+                    <span>Value</span>
+                    <strong>
+                        {values.value ?? "--"}
+                    </strong>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <pre>
+            {JSON.stringify(data, null, 2)}
+        </pre>
+    );
+}
 function App() {
-
-    console.log("API URL:", import.meta.env.VITE_API_BASE_URL);
-    console.log("TEST:", import.meta.env.VITE_TEST);
-
     const [health, setHealth] = useState<HealthResponse | null>(null);
     const [sensors, setSensors] = useState<Sensor[]>([]);
-    const [selectedSensor, setSelectedSensor] =
-        useState<Sensor | null>(null);
-
+    const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
     const [telemetry, setTelemetry] =
         useState<TelemetryPacket<unknown>[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -42,6 +134,7 @@ function App() {
                 );
             });
     }, []);
+
     useEffect(() => {
         if (!selectedSensor) {
             setTelemetry([]);
@@ -60,149 +153,280 @@ function App() {
     }, [selectedSensor]);
 
     return (
-        <div>
-            <header>
-                <h1>Smart-X</h1>
-                <p>IoT Mesh Ecosystem</p>
+        <div className="app">
+
+            <header className="dashboard-header">
+                <div>
+                    <h1>Smart-X</h1>
+                    <p>IoT Mesh Ecosystem</p>
+                </div>
+
+                <div className="gateway-status">
+                    <span
+                        className={
+                            health
+                                ? "status-dot online"
+                                : "status-dot offline"
+                        }
+                    />
+
+                    <span>
+                        Gateway:{" "}
+                        <strong>
+                            {health ? "Online" : "Offline"}
+                        </strong>
+                    </span>
+                </div>
             </header>
 
-            <main>
+            {error && (
+                <div className="error-banner">
+                    {error}
+                </div>
+            )}
 
-                <section>
-                    <h2>Smart-X Gateway</h2>
+            <main className="dashboard">
 
-                    <p>
-                        Data Ingestion and Validation Gateway
-                    </p>
+                <section className="overview">
+                    <div className="overview-card">
+                        <span>Total Sensors</span>
+                        <strong>{sensors.length}</strong>
+                    </div>
 
-                    {health && (
-                        <p>
-                            Gateway Status:{" "}
-                            <strong>{health.status}</strong>
-                        </p>
-                    )}
+                    <div className="overview-card">
+                        <span>Online</span>
+                        <strong>
+                            {
+                                sensors.filter(
+                                    (sensor) => sensor.isOnline
+                                ).length
+                            }
+                        </strong>
+                    </div>
 
-                    {error && (
-                        <p>
-                            Gateway Status: <strong>Offline</strong>
-                        </p>
-                    )}
+                    <div className="overview-card">
+                        <span>Offline</span>
+                        <strong>
+                            {
+                                sensors.filter(
+                                    (sensor) => !sensor.isOnline
+                                ).length
+                            }
+                        </strong>
+                    </div>
                 </section>
 
                 <section>
-                    <h2>Registered Sensors</h2>
+                    <div className="section-heading">
+                        <div>
+                            <h2>Registered Sensors</h2>
+                            <p>
+                                Monitor connected Smart-X devices
+                            </p>
+                        </div>
+                    </div>
 
                     {sensors.length === 0 ? (
-                        <p>No sensors registered.</p>
+                        <div className="empty-state">
+                            <h3>No sensors registered</h3>
+                            <p>
+                                Register a sensor through the Smart-X API
+                                to begin monitoring.
+                            </p>
+                        </div>
                     ) : (
-                            sensors.map((sensor) => (
+                        <div className="sensor-grid">
+                            {sensors.map((sensor) => (
                                 <article
                                     key={sensor.id}
-                                    onClick={() => setSelectedSensor(sensor)}
-                                    style={{
-                                        cursor: "pointer",
-                                        border: "1px solid #ccc",
-                                        padding: "16px",
-                                        marginBottom: "10px",
-                                    }}
+                                    className={
+                                        selectedSensor?.id === sensor.id
+                                            ? "sensor-card selected"
+                                            : "sensor-card"
+                                    }
+                                    onClick={() =>
+                                        setSelectedSensor(sensor)
+                                    }
                                 >
-                                <h3>{sensor.deviceIdentifier}</h3>
+                                    <div className="sensor-card-header">
+                                        <div>
+                                            <h3>
+                                                {sensor.deviceIdentifier}
+                                            </h3>
 
-                                <p>
-                                    Category: {sensor.category}
-                                </p>
+                                            <span className="sensor-category">
+                                                {sensor.category}
+                                            </span>
+                                        </div>
 
-                                <p>
-                                    Location: {sensor.deploymentLocation}
-                                </p>
+                                        <span
+                                            className={
+                                                sensor.isOnline
+                                                    ? "sensor-status online"
+                                                    : "sensor-status offline"
+                                            }
+                                        >
+                                            <span className="status-dot" />
+                                            {sensor.isOnline
+                                                ? "Online"
+                                                : "Offline"}
+                                        </span>
+                                    </div>
 
-                                <p>
-                                    MAC Address: {sensor.macAddress}
-                                </p>
+                                    <div className="sensor-details">
+                                        <div>
+                                            <span>Location</span>
+                                            <strong>
+                                                {sensor.deploymentLocation}
+                                            </strong>
+                                        </div>
 
-                                <p>
-                                    Status:{" "}
-                                    <strong>
-                                        {sensor.isOnline
-                                            ? "Online"
-                                            : "Offline"}
-                                    </strong>
-                                </p>
+                                        <div>
+                                            <span>MAC Address</span>
+                                            <strong>
+                                                {sensor.macAddress}
+                                            </strong>
+                                        </div>
+                                    </div>
 
-                                <p>
-                                    Last Seen:{" "}
-                                    {sensor.lastSeen
-                                        ? new Date(
-                                            sensor.lastSeen
-                                        ).toLocaleString()
-                                        : "Never"}
-                                </p>
-                            </article>
-                        ))
+                                    <div className="sensor-last-seen">
+                                        Last seen:{" "}
+                                        {sensor.lastSeen
+                                            ? new Date(
+                                                sensor.lastSeen
+                                            ).toLocaleString()
+                                            : "Never"}
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
                     )}
                 </section>
 
-                <section>
-                    <h2>Telemetry</h2>
+                <section className="telemetry-section">
+                    <div className="section-heading">
+                        <div>
+                            <h2>Telemetry</h2>
+                            <p>
+                                Sensor readings and historical data
+                            </p>
+                        </div>
+                    </div>
 
-                    {!selectedSensor && (
-                        <p>Select a sensor to view its telemetry.</p>
-                    )}
+                    {!selectedSensor ? (
+                        <div className="empty-state">
+                            <h3>Select a sensor</h3>
+                            <p>
+                                Select a sensor above to view its
+                                telemetry.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="telemetry-panel">
 
-                    {selectedSensor && (
-                        <>
-                            <h3>
-                                {selectedSensor.deviceIdentifier}
-                            </h3>
+                            <div className="telemetry-header">
+                                <div>
+                                    <h3>
+                                        {selectedSensor.deviceIdentifier}
+                                    </h3>
+                                    <span>
+                                        {selectedSensor.category}
+                                    </span>
+                                </div>
+
+                                <span
+                                    className={
+                                        selectedSensor.isOnline
+                                            ? "sensor-status online"
+                                            : "sensor-status offline"
+                                    }
+                                >
+                                    {selectedSensor.isOnline
+                                        ? "Online"
+                                        : "Offline"}
+                                </span>
+                            </div>
 
                             {telemetry.length === 0 ? (
-                                <p>No telemetry available.</p>
+                                <div className="empty-state">
+                                    <p>
+                                        No telemetry available for this
+                                        sensor.
+                                    </p>
+                                </div>
                             ) : (
-                                telemetry.map((packet) => (
-                                    <article key={packet.packetId}>
-                                        <p>
-                                            <strong>Type:</strong>{" "}
-                                            {packet.telemetryType}
-                                        </p>
+                                <div className="telemetry-list">
+                                    {telemetry.map((packet) => (
+                                        <article
+                                            className="telemetry-card"
+                                            key={packet.packetId}
+                                        >
+                                            <div>
+                                                <span>Telemetry Type</span>
+                                                <strong>
+                                                    {packet.telemetryType}
+                                                </strong>
+                                            </div>
 
-                                        <p>
-                                            <strong>Time:</strong>{" "}
-                                            {new Date(
-                                                packet.timestamp
-                                            ).toLocaleString()}
-                                        </p>
+                                            <div>
+                                                <span>Timestamp</span>
+                                                <strong>
+                                                    {new Date(
+                                                        packet.timestamp
+                                                    ).toLocaleString()}
+                                                </strong>
+                                            </div>
 
-                                        <pre>
-                                            {JSON.stringify(
-                                                packet.data,
-                                                null,
-                                                2
+                                            {renderTelemetryData(
+                                                packet.telemetryType,
+                                                packet.data
                                             )}
-                                        </pre>
-                                    </article>
-                                ))
+                                        </article>
+                                    ))}
+                                </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </section>
 
                 <section>
-                    <h2>Architectural Pillars</h2>
+                    <div className="section-heading">
+                        <div>
+                            <h2>Architectural Pillars</h2>
+                            <p>
+                                Smart-X platform capabilities
+                            </p>
+                        </div>
+                    </div>
 
-                    <article>
-                        <h3>📡 Sensor Data Ingestion and Telemetry</h3>
-                        <p>Available in Part 1</p>
-                    </article>
+                    <div className="pillars-grid">
+                        <article className="pillar-card active">
+                            <h3>
+                                📡 Sensor Data Ingestion
+                            </h3>
+                            <p>
+                                Active — Part 1
+                            </p>
+                        </article>
 
-                    <article>
-                        <h3>⚡ Real-Time Command Stream and History</h3>
-                        <p>Disabled — Part 2</p>
-                    </article>
+                        <article className="pillar-card disabled">
+                            <h3>
+                                ⚡ Command Stream & History
+                            </h3>
+                            <p>
+                                Disabled — Part 2
+                            </p>
+                        </article>
 
-                    <article>
-                        <h3>🕸️ Network Topology and Mesh Routing</h3>
-                        <p>Disabled — Final PoE</p>
-                    </article>
+                        <article className="pillar-card disabled">
+                            <h3>
+                                🕸️ Network Topology
+                            </h3>
+                            <p>
+                                Disabled — Final PoE
+                            </p>
+                        </article>
+                    </div>
                 </section>
 
             </main>
