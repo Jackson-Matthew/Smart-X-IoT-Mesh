@@ -790,3 +790,144 @@ textarea {
         transform: translateY(0);
     }
 }
+
+.simulator-section {
+    margin-top: 24px;
+}
+
+.simulator-panel {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.simulator-info {
+    padding: 18px;
+    border-radius: 12px;
+    background: #151922;
+    border: 1px solid #2a3040;
+}
+
+    .simulator-info span {
+        display: block;
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+        opacity: 0.7;
+    }
+
+    .simulator-info strong {
+        font-size: 1.2rem;
+    }
+
+.simulator-status {
+    font-weight: 600;
+}
+
+    .simulator-status.running {
+        color: #4ade80;
+    }
+
+    .simulator-status.stopped {
+        color: #94a3b8;
+    }
+
+.simulator-controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+    .simulator-controls button {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+        .simulator-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+.primary-button {
+    background: #2563eb;
+    color: white;
+}
+
+.secondary-button {
+    background: #374151;
+    color: white;
+}
+
+@media (max-width: 900px) {
+    .simulator-panel {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.telemetry-current {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.current-reading {
+    padding: 18px;
+    border-radius: 12px;
+    background: #151922;
+    border: 1px solid #2a3040;
+}
+
+    .current-reading span {
+        display: block;
+        font-size: 0.8rem;
+        opacity: 0.7;
+        margin-bottom: 8px;
+    }
+
+    .current-reading strong {
+        font-size: 1.4rem;
+    }
+
+.telemetry-chart {
+    padding: 20px;
+    border-radius: 12px;
+    background: #151922;
+    border: 1px solid #2a3040;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .chart-header h3 {
+        margin: 0 0 6px;
+    }
+
+    .chart-header p {
+        margin: 0;
+        opacity: 0.7;
+        font-size: 0.9rem;
+    }
+
+.live-indicator {
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .telemetry-current {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-header {
+        align-items: flex-start;
+        gap: 12px;
+        flex-direction: column;
+    }
+}

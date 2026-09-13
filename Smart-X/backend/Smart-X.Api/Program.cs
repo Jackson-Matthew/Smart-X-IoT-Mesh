@@ -30,6 +30,7 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<DeploymentValidationService>();
             builder.Services.AddSingleton<SensorAggregationService>();
             builder.Services.AddSingleton<IssueService>();
+            builder.Services.AddSingleton<SeedDataService>();
             builder.Services.AddOpenApi();
 
             builder.Services.AddCors(options =>
@@ -44,6 +45,14 @@ namespace Smart_X.Api
             });
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var seedDataService = scope.ServiceProvider
+                    .GetRequiredService<SeedDataService>();
+
+                seedDataService.SeedAsync().GetAwaiter().GetResult();
+            }
 
             if (app.Environment.IsDevelopment())
             {
@@ -65,6 +74,8 @@ namespace Smart_X.Api
                     version = "1.0"
                 });
             });
+
+
 
             app.MapSensorEndpoints();
             app.MapControllers();

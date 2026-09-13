@@ -1,4 +1,20 @@
-import { useEffect, useState, type FormEvent } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    type FormEvent
+} from "react";
+
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
+
 import {
     getHealth,
     getSensors,
@@ -9,11 +25,13 @@ import {
     uploadSensorMedia,
     reportIssue,
     resolveIssue,
+    sendEnvironmentalTelemetry,
     type HealthResponse,
     type Sensor,
     type SensorMedia,
     type ReportedIssue,
     type TelemetryPacket,
+    type EnvironmentalTelemetry
 } from "./services/api";
 
 function renderValue(value: unknown, fallback = "--"): string {
@@ -163,6 +181,28 @@ function App() {
         unresolvedIssues.length > 0 ||
         offlineSensors.length > 0;
 
+    const [isSimulating, setIsSimulating] =
+        useState(false);
+
+    const [simulationCount, setSimulationCount] =
+        useState(0);
+
+    const [simulatedReading, setSimulatedReading] =
+        useState<EnvironmentalTelemetry>({
+            temperature: 23.5,
+            humidity: 48.2,
+            pressure: 1012.4,
+        });
+
+    const simulatedReadingRef =
+        useRef<EnvironmentalTelemetry>({
+            temperature: 23.5,
+            humidity: 48.2,
+            pressure: 1012.4,
+        });
+
+    const simulationIntervalRef =
+        useRef<ReturnType<typeof setInterval> | null>(null);
     useEffect(() => {
         const refreshDashboard = async () => {
             try {
@@ -196,6 +236,160 @@ function App() {
             clearInterval(refreshInterval);
         };
     }, []);
+
+    useEffect(() => {
+        return () => {
+            if (simulationIntervalRef.current) {
+                clearInterval(simulationIntervalRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!selectedSensor) {
+            return;
+        }
+
+        const refreshSelectedTelemetry = async () => {
+            try {
+                const telemetryData = await getTelemetry(
+                    selectedSensor.deviceIdentifier
+                );
+
+                setTelemetry(telemetryData);
+            } catch (err) {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Unable to refresh telemetry."
+                );
+            }
+        };
+
+        refreshSelectedTelemetry();
+
+        const telemetryInterval = setInterval(
+            refreshSelectedTelemetry,
+            3000
+        );
+
+        return () => {
+            clearInterval(telemetryInterval);
+        };
+    }, [selectedSensor]);
+    const environmentalGraphData = telemetry
+        .filter(
+            (packet) =>
+                packet.telemetryType === "Environmental"
+        )
+        .map((packet) => {
+            const data =
+                packet.data as Record<string, unknown>;
+
+            return {
+                time: new Date(
+                    packet.timestamp
+                ).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                }),
+
+                temperature:
+                    typeof data.temperature === "number"
+                        ? data.temperature
+                        : null,
+
+                humidity:
+                    typeof data.humidity === "number"
+                        ? data.humidity
+                        : null,
+
+                pressure:
+                    typeof data.pressure === "number"
+                        ? data.pressure
+                        : null,
+            };
+        });
+    async function generateSimulatedReading() {
+        const current = simulatedReadingRef.current;
+
+        const temperatureChange =
+            (Math.random() * 2 - 1) * 0.5;
+
+        const humidityChange =
+            (Math.random() * 2 - 1) * 1;
+
+        const pressureChange =
+            (Math.random() * 2 - 1) * 0.5;
+
+        const nextReading: EnvironmentalTelemetry = {
+            temperature: Number(
+                (current.temperature + temperatureChange).toFixed(1)
+            ),
+
+            humidity: Number(
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        current.humidity + humidityChange
+                    )
+                ).toFixed(1)
+            ),
+
+            pressure: Number(
+                (current.pressure + pressureChange).toFixed(1)
+            ),
+        };
+
+        simulatedReadingRef.current = nextReading;
+        setSimulatedReading(nextReading);
+
+        try {
+            await sendEnvironmentalTelemetry({
+                packetId: crypto.randomUUID(),
+                deviceIdentifier: "TEMP-001",
+                timestamp: new Date().toISOString(),
+                telemetryType: "Environmental",
+                data: nextReading,
+            });
+
+            setSimulationCount(
+                (currentCount) => currentCount + 1
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Unable to send simulated telemetry."
+            );
+        }
+    }
+
+    function startSimulator() {
+        if (simulationIntervalRef.current) {
+            return;
+        }
+
+        setIsSimulating(true);
+
+        generateSimulatedReading();
+
+        simulationIntervalRef.current = setInterval(
+            generateSimulatedReading,
+            3000
+        );
+    }
+
+    function stopSimulator() {
+        if (simulationIntervalRef.current) {
+            clearInterval(simulationIntervalRef.current);
+            simulationIntervalRef.current = null;
+        }
+
+        setIsSimulating(false);
+    }
 
     async function handleReportIssue(
         event: FormEvent<HTMLFormElement>
@@ -708,6 +902,84 @@ function App() {
                     )}
                 </section>
 
+                <section className="simulator-section">
+                    <div className="section-heading">
+                        <div>
+                            <h2>Sensor Simulator</h2>
+                            <p>
+                                Simulate live telemetry from TEMP-001
+                            </p>
+                        </div>
+
+                        <span
+                            className={
+                                isSimulating
+                                    ? "simulator-status running"
+                                    : "simulator-status stopped"
+                            }
+                        >
+                            {isSimulating
+                                ? "● Running"
+                                : "● Stopped"}
+                        </span>
+                    </div>
+
+                    <div className="simulator-panel">
+                        <div className="simulator-info">
+                            <span>Simulated Device</span>
+                            <strong>TEMP-001</strong>
+                        </div>
+
+                        <div className="simulator-info">
+                            <span>Temperature</span>
+                            <strong>
+                                {simulatedReading.temperature} °C
+                            </strong>
+                        </div>
+
+                        <div className="simulator-info">
+                            <span>Humidity</span>
+                            <strong>
+                                {simulatedReading.humidity} %
+                            </strong>
+                        </div>
+
+                        <div className="simulator-info">
+                            <span>Pressure</span>
+                            <strong>
+                                {simulatedReading.pressure} hPa
+                            </strong>
+                        </div>
+
+                        <div className="simulator-info">
+                            <span>Readings Sent</span>
+                            <strong>
+                                {simulationCount}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div className="simulator-controls">
+                        <button
+                            type="button"
+                            onClick={startSimulator}
+                            disabled={isSimulating}
+                            className="primary-button"
+                        >
+                            Start Simulator
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={stopSimulator}
+                            disabled={!isSimulating}
+                            className="secondary-button"
+                        >
+                            Stop Simulator
+                        </button>
+                    </div>
+                </section>
+
                 <section className="telemetry-section">
                     <div className="section-heading">
                         <div>
@@ -719,81 +991,116 @@ function App() {
                     </div>
 
                     {!selectedSensor ? (
-                        <div className="empty-state">
-                            <h3>Select a sensor</h3>
-                            <p>
-                                Select a sensor above to view its
-                                telemetry.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="telemetry-panel">
+    <div className="empty-state">
+        <p>
+            Select a sensor to view telemetry.
+        </p>
+    </div>
+) : telemetry.length === 0 ? (
+    <div className="empty-state">
+        <p>
+            No telemetry data available.
+        </p>
+    </div>
+) : (
+    <div className="telemetry-panel">
 
-                            <div className="telemetry-header">
-                                <div>
-                                    <h3>
-                                        {selectedSensor.deviceIdentifier}
-                                    </h3>
-                                    <span>
-                                        {selectedSensor.category}
-                                    </span>
+        <div className="telemetry-current">
+            <div className="current-reading">
+                <span>Temperature</span>
+
+                <strong>
+                    {environmentalGraphData.length > 0
+                        ? environmentalGraphData[
+                              environmentalGraphData.length - 1
+                          ].temperature
+                        : "--"}{" "}
+                    °C
+                </strong>
+            </div>
+
+            <div className="current-reading">
+                <span>Humidity</span>
+
+                <strong>
+                    {environmentalGraphData.length > 0
+                        ? environmentalGraphData[
+                              environmentalGraphData.length - 1
+                          ].humidity
+                        : "--"}{" "}
+                    %
+                </strong>
+            </div>
+
+            <div className="current-reading">
+                <span>Pressure</span>
+
+                <strong>
+                    {environmentalGraphData.length > 0
+                        ? environmentalGraphData[
+                              environmentalGraphData.length - 1
+                          ].pressure
+                        : "--"}{" "}
+                    hPa
+                </strong>
+            </div>
+        </div>
+
+        <div className="telemetry-chart">
+            <div className="chart-header">
+                <div>
+                    <h3>Environmental Telemetry</h3>
+
+                    <p>
+                        Live temperature readings from{" "}
+                        {selectedSensor.deviceIdentifier}
+                    </p>
+                </div>
+
+                <span className="live-indicator">
+                    ● Live
+                </span>
+            </div>
+
+            <ResponsiveContainer
+                width="100%"
+                height={350}
+            >
+                <LineChart
+                    data={environmentalGraphData}
+                    margin={{
+                        top: 20,
+                        right: 20,
+                        left: 0,
+                        bottom: 10,
+                    }}
+                >
+                    <CartesianGrid
+                        strokeDasharray="3 3"
+                    />
+
+                    <XAxis
+                        dataKey="time"
+                    />
+
+                    <YAxis />
+
+                    <Tooltip />
+
+                    <Line
+                        type="monotone"
+                        dataKey="temperature"
+                        name="Temperature"
+                        strokeWidth={3}
+                        dot={false}
+                    />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
                                 </div>
 
-                                <span
-                                    className={
-                                        selectedSensor.isOnline
-                                            ? "sensor-status online"
-                                            : "sensor-status offline"
-                                    }
-                                >
-                                    {selectedSensor.isOnline
-                                        ? "Online"
-                                        : "Offline"}
-                                </span>
-                            </div>
-
-                            {telemetry.length === 0 ? (
-                                <div className="empty-state">
-                                    <p>
-                                        No telemetry available for this
-                                        sensor.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="telemetry-list">
-                                    {telemetry.map((packet) => (
-                                        <article
-                                            className="telemetry-card"
-                                            key={packet.packetId}
-                                        >
-                                            <div>
-                                                <span>Telemetry Type</span>
-                                                <strong>
-                                                    {packet.telemetryType}
-                                                </strong>
-                                            </div>
-
-                                            <div>
-                                                <span>Timestamp</span>
-                                                <strong>
-                                                    {new Date(
-                                                        packet.timestamp
-                                                    ).toLocaleString()}
-                                                </strong>
-                                            </div>
-
-                                            {renderTelemetryData(
-                                                packet.telemetryType,
-                                                packet.data
-                                            )}
-                                        </article>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
+)}
                 </section>
-
                 {selectedSensor && (
                     <section className="issue-report-section">
                         <div className="section-heading">
@@ -1046,46 +1353,6 @@ function App() {
                         </div>
                     </div>
                 )}
-                <section>
-                    <div className="section-heading">
-                        <div>
-                            <h2>Architectural Pillars</h2>
-                            <p>
-                                Smart-X platform capabilities
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="pillars-grid">
-                        <article className="pillar-card active">
-                            <h3>
-                                📡 Sensor Data Ingestion
-                            </h3>
-                            <p>
-                                Active — Part 1
-                            </p>
-                        </article>
-
-                        <article className="pillar-card disabled">
-                            <h3>
-                                ⚡ Command Stream & History
-                            </h3>
-                            <p>
-                                Disabled — Part 2
-                            </p>
-                        </article>
-
-                        <article className="pillar-card disabled">
-                            <h3>
-                                🕸️ Network Topology
-                            </h3>
-                            <p>
-                                Disabled — Final PoE
-                            </p>
-                        </article>
-                    </div>
-                </section>
-
             </main>
         </div>
     );

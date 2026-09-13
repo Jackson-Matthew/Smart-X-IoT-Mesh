@@ -35,7 +35,36 @@ export interface ReportedIssue {
     reportedAt: string;
     resolved: boolean;
 }
+export interface EnvironmentalTelemetry {
+    temperature: number;
+    humidity: number;
+    pressure: number;
+}
 
+export async function sendEnvironmentalTelemetry(
+    packet: TelemetryPacket<EnvironmentalTelemetry>
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/Telemetry/environmental`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(packet),
+        }
+    );
+
+    if (!response.ok) {
+        const errorText = await response.text();
+
+        throw new Error(
+            errorText || "Unable to send environmental telemetry."
+        );
+    }
+
+    return response.json();
+}
 export interface EnvironmentalTelemetry {
     temperature: number;
     humidity: number;
