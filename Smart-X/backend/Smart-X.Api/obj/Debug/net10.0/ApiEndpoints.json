@@ -1,5 +1,21 @@
 [
   {
+    "ContainingType": "Smart_X.Api.Controllers.DeploymentController",
+    "Method": "ValidateDeployment",
+    "RelativePath": "api/Deployment/validate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "node",
+        "Type": "Smart_X.Api.Models.DeploymentNode",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Smart_X.Api.Program\u002B\u003C\u003Ec",
     "Method": "\u003CMain\u003Eb__0_2",
     "RelativePath": "api/health",
@@ -14,6 +30,22 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.SensorAggregationController",
+    "Method": "Aggregate",
+    "RelativePath": "api/SensorAggregation",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Smart_X.Api.Controllers.SensorReadingPair",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "SmartX.Api.Endpoints.SensorEndpoints\u002B\u003C\u003Ec",
@@ -83,6 +115,43 @@
     "Tags": [
       "Sensors"
     ]
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.SensorMediaController",
+    "Method": "GetMedia",
+    "RelativePath": "api/sensors/{sensorId}/media",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sensorId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.SensorMediaController",
+    "Method": "Upload",
+    "RelativePath": "api/sensors/{sensorId}/media/upload",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sensorId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "Smart_X.Api.Controllers.TelemetryController",

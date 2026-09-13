@@ -18,5 +18,7 @@
 
         public DateTime? LastSeen { get; set; }
 
+        public List<SensorMedia> Media { get; set; } = [];
+
     }
 }
