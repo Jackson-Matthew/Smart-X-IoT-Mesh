@@ -17,6 +17,25 @@ export interface Sensor {
     lastSeen: string | null;
 }
 
+export interface SensorMedia {
+    id: string;
+    originalFileName: string;
+    storedFileName: string;
+    contentType: string;
+    fileSize: number;
+    uploadedAt: string;
+}
+
+export interface ReportedIssue {
+    id: string;
+    sensorId: string;
+    deviceIdentifier: string;
+    description: string;
+    severity: string;
+    reportedAt: string;
+    resolved: boolean;
+}
+
 export interface EnvironmentalTelemetry {
     temperature: number;
     humidity: number;
@@ -101,4 +120,107 @@ export async function getTelemetry(
     }
 
     return response.json();
+}
+
+export async function uploadSensorMedia(
+    sensorId: string,
+    file: File
+): Promise<SensorMedia> {
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await fetch(
+        `${API_BASE_URL}/api/sensors/${sensorId}/media/upload`,
+        {
+            method: "POST",
+            body: formData,
+        }
+    );
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+            errorData?.error ||
+            "Unable to upload sensor media."
+        );
+    }
+
+    return response.json();
+}
+
+export async function getSensorMedia(
+    sensorId: string
+): Promise<SensorMedia[]> {
+    const response = await fetch(
+        `${API_BASE_URL}/api/sensors/${sensorId}/media`
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            "Unable to retrieve sensor media."
+        );
+    }
+
+    return response.json();
+}
+export async function getIssues(): Promise<ReportedIssue[]> {
+    const response = await fetch(
+        `${API_BASE_URL}/api/Issues`
+    );
+
+    if (!response.ok) {
+        throw new Error("Unable to retrieve reported issues.");
+    }
+
+    return response.json();
+}
+
+export async function reportIssue(issue: {
+    sensorId: string;
+    description: string;
+    severity: string;
+}): Promise<ReportedIssue> {
+    const response = await fetch(
+        `${API_BASE_URL}/api/Issues`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(issue),
+        }
+    );
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+            errorData?.error ||
+            "Unable to report issue."
+        );
+    }
+
+    return response.json();
+}
+
+export async function resolveIssue(
+    issueId: string
+): Promise<void> {
+    const response = await fetch(
+        `${API_BASE_URL}/api/Issues/${issueId}/resolve`,
+        {
+            method: "PUT",
+        }
+    );
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+            errorData?.error ||
+            "Unable to resolve issue."
+        );
+    }
 }

@@ -32,6 +32,64 @@
     ]
   },
   {
+    "ContainingType": "Smart_X.Api.Controllers.IssuesController",
+    "Method": "GetIssues",
+    "RelativePath": "api/Issues",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.IssuesController",
+    "Method": "ReportIssue",
+    "RelativePath": "api/Issues",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Smart_X.Api.Models.ReportedIssue",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.IssuesController",
+    "Method": "ResolveIssue",
+    "RelativePath": "api/Issues/{issueId}/resolve",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "issueId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Smart_X.Api.Controllers.IssuesController",
+    "Method": "GetSensorIssues",
+    "RelativePath": "api/Issues/sensor/{sensorId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sensorId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Smart_X.Api.Controllers.SensorAggregationController",
     "Method": "Aggregate",
     "RelativePath": "api/SensorAggregation",

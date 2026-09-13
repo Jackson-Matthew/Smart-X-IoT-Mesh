@@ -3,9 +3,16 @@ import {
     getHealth,
     getSensors,
     getTelemetry,
+    getSensorMedia,
+    getIssues,
     registerSensor,
+    uploadSensorMedia,
+    reportIssue,
+    resolveIssue,
     type HealthResponse,
     type Sensor,
+    type SensorMedia,
+    type ReportedIssue,
     type TelemetryPacket,
 } from "./services/api";
 
@@ -125,44 +132,228 @@ function App() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        getHealth()
-            .then(setHealth)
-            .catch((err) => {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "API connection failed."
-                );
-            });
+    const [sensorMedia, setSensorMedia] = useState<SensorMedia[]>([]);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [mediaMessage, setMediaMessage] = useState("");
 
-        getSensors()
-            .then(setSensors)
-            .catch((err) => {
+    const [issues, setIssues] = useState<ReportedIssue[]>([]);
+
+    const [issueDescription, setIssueDescription] = useState("");
+
+    const [issueSeverity, setIssueSeverity] =
+        useState("Medium");
+
+    const [isReportingIssue, setIsReportingIssue] =
+        useState(false);
+
+    const [issueMessage, setIssueMessage] =
+
+        useState<string | null>(null);
+
+    const unresolvedIssues = issues.filter(
+        (issue) => !issue.resolved
+    );
+
+    const offlineSensors = sensors.filter(
+        (sensor) => !sensor.isOnline
+    );
+
+    const requiresAttention =
+        unresolvedIssues.length > 0 ||
+        offlineSensors.length > 0;
+
+    useEffect(() => {
+        const refreshDashboard = async () => {
+            try {
+                const [healthData, sensorData, issueData] =
+                    await Promise.all([
+                        getHealth(),
+                        getSensors(),
+                        getIssues(),
+                    ]);
+
+                setHealth(healthData);
+                setSensors(sensorData);
+                setIssues(issueData);
+            } catch (err) {
                 setError(
                     err instanceof Error
                         ? err.message
-                        : "Unable to retrieve sensors."
+                        : "Unable to refresh dashboard data."
                 );
-            });
+            }
+        };
+
+        refreshDashboard();
+
+        const refreshInterval = setInterval(
+            refreshDashboard,
+            10000
+        );
+
+        return () => {
+            clearInterval(refreshInterval);
+        };
     }, []);
 
-    useEffect(() => {
+    async function handleReportIssue(
+        event: FormEvent<HTMLFormElement>
+    ) {
+        event.preventDefault();
+
         if (!selectedSensor) {
-            setTelemetry([]);
+            setIssueMessage("Please select a sensor first.");
             return;
         }
 
-        getTelemetry(selectedSensor.deviceIdentifier)
-            .then(setTelemetry)
-            .catch((err) => {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Unable to retrieve telemetry."
-                );
+        if (!issueDescription.trim()) {
+            setIssueMessage(
+                "Please describe the issue."
+            );
+            return;
+        }
+
+        setIsReportingIssue(true);
+        setIssueMessage(null);
+
+        try {
+            const newIssue = await reportIssue({
+                sensorId: selectedSensor.id,
+                description: issueDescription.trim(),
+                severity: issueSeverity,
             });
-    }, [selectedSensor]);
+
+            setIssues((currentIssues) => [
+                newIssue,
+                ...currentIssues,
+            ]);
+
+            setIssueDescription("");
+            setIssueSeverity("Medium");
+
+            setIssueMessage(
+                "Issue reported successfully."
+            );
+        } catch (err) {
+            setIssueMessage(
+                err instanceof Error
+                    ? err.message
+                    : "Unable to report issue."
+            );
+        } finally {
+            setIsReportingIssue(false);
+        }
+    }
+
+    async function handleResolveIssue(issueId: string) {
+        try {
+            await resolveIssue(issueId);
+
+            setIssues((currentIssues) =>
+                currentIssues.map((issue) =>
+                    issue.id === issueId
+                        ? { ...issue, resolved: true }
+                        : issue
+                )
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Unable to resolve issue."
+            );
+        }
+    }
+
+    async function handleSelectSensor(sensor: Sensor) {
+        setSelectedSensor(sensor);
+        setSelectedFile(null);
+        setMediaMessage("");
+
+        try {
+            const [telemetryData, mediaData] = await Promise.all([
+                getTelemetry(sensor.deviceIdentifier),
+                getSensorMedia(sensor.id),
+            ]);
+
+            setTelemetry(telemetryData);
+            setSensorMedia(mediaData);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to load sensor data."
+            );
+
+            setTelemetry([]);
+            setSensorMedia([]);
+        }
+    }
+
+    async function handleFileUpload() {
+        if (!selectedSensor || !selectedFile) {
+            return;
+        }
+
+        const allowedExtensions = [
+            ".txt",
+            ".log",
+            ".jpg",
+            ".jpeg",
+            ".png",
+        ];
+
+        const extension =
+            selectedFile.name
+                .substring(selectedFile.name.lastIndexOf("."))
+                .toLowerCase();
+
+        if (!allowedExtensions.includes(extension)) {
+            setMediaMessage(
+                "Only TXT, LOG, JPG, JPEG and PNG files are allowed."
+            );
+
+            return;
+        }
+
+        if (selectedFile.size > 10 * 1024 * 1024) {
+            setMediaMessage(
+                "File size cannot exceed 10 MB."
+            );
+
+            return;
+        }
+
+        setUploadingFile(true);
+        setMediaMessage("");
+
+        try {
+            const uploadedFile = await uploadSensorMedia(
+                selectedSensor.id,
+                selectedFile
+            );
+
+            setSensorMedia((current) => [
+                ...current,
+                uploadedFile,
+            ]);
+
+            setSelectedFile(null);
+
+            setMediaMessage(
+                "File attached successfully."
+            );
+        } catch (error) {
+            setMediaMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to upload file."
+            );
+        } finally {
+            setUploadingFile(false);
+        }
+    }
 
 
     const handleRegisterSensor = async (
@@ -264,7 +455,41 @@ function App() {
             )}
 
             <main className="dashboard">
+                {requiresAttention && (
+                    <section className="attention-section">
+                        <div className="attention-banner">
+                            <div>
+                                <strong>⚠ Attention Required</strong>
 
+                                <p>
+                                    {offlineSensors.length > 0 && (
+                                        <>
+                                            {offlineSensors.length} sensor
+                                            {offlineSensors.length !== 1 ? "s" : ""}{" "}
+                                            currently offline.
+                                        </>
+                                    )}
+
+                                    {offlineSensors.length > 0 &&
+                                        unresolvedIssues.length > 0 && (
+                                            <> </>
+                                        )}
+
+                                    {unresolvedIssues.length > 0 && (
+                                        <>
+                                            {unresolvedIssues.length} unresolved
+                                            issue
+                                            {unresolvedIssues.length !== 1
+                                                ? "s"
+                                                : ""}{" "}
+                                            requiring attention.
+                                        </>
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                )}
                 <section className="registration-section">
                     <div className="section-heading">
                         <div>
@@ -424,9 +649,9 @@ function App() {
                                             ? "sensor-card selected"
                                             : "sensor-card"
                                     }
-                                    onClick={() =>
-                                        setSelectedSensor(sensor)
+                                    onClick={() => handleSelectSensor(sensor)
                                     }
+                                    
                                 >
                                     <div className="sensor-card-header">
                                         <div>
@@ -569,6 +794,258 @@ function App() {
                     )}
                 </section>
 
+                {selectedSensor && (
+                    <section className="issue-report-section">
+                        <div className="section-heading">
+                            <div>
+                                <h2>Report an Issue</h2>
+                                <p>
+                                    Report a troubleshooting problem for{" "}
+                                    <strong>
+                                        {selectedSensor.deviceIdentifier}
+                                    </strong>
+                                </p>
+                            </div>
+                        </div>
+
+                        <form
+                            className="issue-form"
+                            onSubmit={handleReportIssue}
+                        >
+                            <div className="form-group">
+                                <label htmlFor="issueDescription">
+                                    Issue Description
+                                </label>
+
+                                <textarea
+                                    id="issueDescription"
+                                    placeholder="Describe the problem..."
+                                    value={issueDescription}
+                                    onChange={(event) =>
+                                        setIssueDescription(
+                                            event.target.value
+                                        )
+                                    }
+                                    rows={4}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="issueSeverity">
+                                    Severity
+                                </label>
+
+                                <select
+                                    id="issueSeverity"
+                                    value={issueSeverity}
+                                    onChange={(event) =>
+                                        setIssueSeverity(
+                                            event.target.value
+                                        )
+                                    }
+                                >
+                                    <option value="Low">
+                                        Low
+                                    </option>
+
+                                    <option value="Medium">
+                                        Medium
+                                    </option>
+
+                                    <option value="High">
+                                        High
+                                    </option>
+
+                                    <option value="Critical">
+                                        Critical
+                                    </option>
+                                </select>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="issue-button"
+                                disabled={isReportingIssue}
+                            >
+                                {isReportingIssue
+                                    ? "Reporting..."
+                                    : "Report Issue"}
+                            </button>
+                        </form>
+
+                        {issueMessage && (
+                            <div className="success-banner">
+                                {issueMessage}
+                            </div>
+                        )}
+                    </section>
+                )}
+
+                <section className="issues-section">
+                    <div className="section-heading">
+                        <div>
+                            <h2>Reported Issues</h2>
+                            <p>
+                                User-reported troubleshooting issues
+                            </p>
+                        </div>
+                    </div>
+
+                    {issues.length === 0 ? (
+                        <div className="empty-state">
+                            <h3>No reported issues</h3>
+                            <p>
+                                No sensor issues have been reported.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="issues-list">
+                            {issues.map((issue) => (
+                                <article
+                                    className={
+                                        issue.resolved
+                                            ? "issue-card resolved"
+                                            : "issue-card"
+                                    }
+                                    key={issue.id}
+                                >
+                                    <div className="issue-card-header">
+                                        <div>
+                                            <h3>
+                                                {issue.deviceIdentifier}
+                                            </h3>
+
+                                            <span>
+                                                {new Date(
+                                                    issue.reportedAt
+                                                ).toLocaleString()}
+                                            </span>
+                                        </div>
+
+                                        <span
+                                            className={`severity-badge ${issue.severity.toLowerCase()}`}
+                                        >
+                                            {issue.severity}
+                                        </span>
+                                    </div>
+
+                                    <p>
+                                        {issue.description}
+                                    </p>
+
+                                    <div className="issue-card-footer">
+                                        <span>
+                                            {issue.resolved
+                                                ? "✓ Resolved"
+                                                : "● Open"}
+                                        </span>
+
+                                        {!issue.resolved && (
+                                            <button
+                                                type="button"
+                                                className="resolve-button"
+                                                onClick={() =>
+                                                    handleResolveIssue(
+                                                        issue.id
+                                                    )
+                                                }
+                                            >
+                                                Resolve
+                                            </button>
+                                        )}
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
+                {selectedSensor && (
+                    <div className="media-section">
+                        <div className="section-heading">
+                            <h2>Sensor Attachments</h2>
+                            <p>
+                                Attach diagnostic logs or photos to this sensor.
+                            </p>
+                        </div>
+
+                        <div className="media-panel">
+                            <div className="upload-controls">
+                                <input
+                                    type="file"
+                                    accept=".txt,.log,.jpg,.jpeg,.png"
+                                    onChange={(event) =>
+                                        setSelectedFile(
+                                            event.target.files?.[0] ?? null
+                                        )
+                                    }
+                                />
+
+                                <button
+                                    type="button"
+                                    className="upload-button"
+                                    disabled={
+                                        !selectedFile ||
+                                        uploadingFile
+                                    }
+                                    onClick={handleFileUpload}
+                                >
+                                    {uploadingFile
+                                        ? "Uploading..."
+                                        : "Attach File"}
+                                </button>
+                            </div>
+
+                            <p className="upload-help">
+                                Supported files: TXT, LOG, JPG, JPEG and PNG.
+                                Maximum size: 10 MB.
+                            </p>
+
+                            {mediaMessage && (
+                                <div className="success-banner">
+                                    {mediaMessage}
+                                </div>
+                            )}
+
+                            <div className="media-list">
+                                {sensorMedia.length === 0 ? (
+                                    <div className="empty-state">
+                                        <h3>No attachments</h3>
+                                        <p>
+                                            No logs or photos have been attached
+                                            to this sensor yet.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    sensorMedia.map((media) => (
+                                        <div
+                                            className="media-item"
+                                            key={media.id}
+                                        >
+                                            <div>
+                                                <strong>
+                                                    {media.originalFileName}
+                                                </strong>
+
+                                                <span>
+                                                    {(media.fileSize / 1024).toFixed(1)}
+                                                    {" KB"} ·{" "}
+                                                    {new Date(
+                                                        media.uploadedAt
+                                                    ).toLocaleString()}
+                                                </span>
+                                            </div>
+
+                                            <span className="media-type">
+                                                {media.contentType}
+                                            </span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <section>
                     <div className="section-heading">
                         <div>
