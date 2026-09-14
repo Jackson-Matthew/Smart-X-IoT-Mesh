@@ -65,6 +65,56 @@ export async function sendEnvironmentalTelemetry(
 
     return response.json();
 }
+
+export async function sendPowerTelemetry(
+    packet: TelemetryPacket<PowerConsumptionTelemetry>
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/Telemetry/power`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(packet),
+        }
+    );
+
+    if (!response.ok) {
+        const errorText = await response.text();
+
+        throw new Error(
+            errorText || "Unable to send power telemetry."
+        );
+    }
+
+    return response.json();
+}
+
+export async function sendActuatorTelemetry(
+    packet: TelemetryPacket<ActuatorTelemetry>
+) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/Telemetry/actuator`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(packet),
+        }
+    );
+
+    if (!response.ok) {
+        const errorText = await response.text();
+
+        throw new Error(
+            errorText || "Unable to send actuator telemetry."
+        );
+    }
+
+    return response.json();
+}
 export interface EnvironmentalTelemetry {
     temperature: number;
     humidity: number;

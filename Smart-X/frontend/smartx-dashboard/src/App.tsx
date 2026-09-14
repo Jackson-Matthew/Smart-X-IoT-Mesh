@@ -26,13 +26,38 @@ import {
     reportIssue,
     resolveIssue,
     sendEnvironmentalTelemetry,
+    sendPowerTelemetry,
+    sendActuatorTelemetry,
     type HealthResponse,
     type Sensor,
     type SensorMedia,
     type ReportedIssue,
     type TelemetryPacket,
-    type EnvironmentalTelemetry
+    type EnvironmentalTelemetry,
+    type PowerConsumptionTelemetry,
+    type ActuatorTelemetry
 } from "./services/api";
+
+const CHART_FIELD: Record<
+    string,
+    { key: string; label: string; unit: string }
+> = {
+    Environmental: {
+        key: "temperature",
+        label: "Temperature",
+        unit: "°C"
+    },
+    PowerConsumption: {
+        key: "power",
+        label: "Power",
+        unit: "W"
+    },
+    Actuator: {
+        key: "value",
+        label: "Value",
+        unit: ""
+    }
+};
 
 function renderValue(value: unknown, fallback = "--"): string {
     return value === null || value === undefined ? fallback : String(value);
@@ -135,7 +160,30 @@ function renderTelemetryData(
         </pre>
     );
 }
+
+type ActivePillar = "ingestion" | "command" | "topology";
+
+const PILLARS: { id: ActivePillar; label: string; enabled: boolean }[] = [
+    {
+        id: "ingestion",
+        label: "Sensor Data Ingestion & Telemetry",
+        enabled: true
+    },
+    {
+        id: "command",
+        label: "Real-Time Command Stream & History",
+        enabled: false
+    },
+    {
+        id: "topology",
+        label: "Network Topology & Mesh Routing",
+        enabled: false
+    }
+];
+
 function App() {
+    const [activePillar, setActivePillar] =
+        useState<ActivePillar>("ingestion");
     const [health, setHealth] = useState<HealthResponse | null>(null);
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
@@ -187,19 +235,43 @@ function App() {
     const [simulationCount, setSimulationCount] =
         useState(0);
 
-    const [simulatedReading, setSimulatedReading] =
+    // The device + category the simulator is currently sending to.
+    // Locked in when the simulator starts, so switching the selected
+    // sensor mid-run doesn't change where readings are sent.
+    const [simulatorTarget, setSimulatorTarget] = useState<{
+        deviceIdentifier: string;
+        category: string;
+    } | null>(null);
+
+    const [simulatedEnvironmental, setSimulatedEnvironmental] =
         useState<EnvironmentalTelemetry>({
             temperature: 23.5,
             humidity: 48.2,
             pressure: 1012.4,
         });
 
-    const simulatedReadingRef =
-        useRef<EnvironmentalTelemetry>({
-            temperature: 23.5,
-            humidity: 48.2,
-            pressure: 1012.4,
+    const [simulatedPower, setSimulatedPower] =
+        useState<PowerConsumptionTelemetry>({
+            voltage: 230.4,
+            current: 4.8,
+            power: 1105.9,
+            energyConsumed: 14.7,
         });
+
+    const [simulatedActuator, setSimulatedActuator] =
+        useState<ActuatorTelemetry>({
+            state: "Running",
+            value: 72,
+        });
+
+    const simulatedEnvironmentalRef =
+        useRef<EnvironmentalTelemetry>(simulatedEnvironmental);
+
+    const simulatedPowerRef =
+        useRef<PowerConsumptionTelemetry>(simulatedPower);
+
+    const simulatedActuatorRef =
+        useRef<ActuatorTelemetry>(simulatedActuator);
 
     const simulationIntervalRef =
         useRef<ReturnType<typeof setInterval> | null>(null);
@@ -277,83 +349,143 @@ function App() {
             clearInterval(telemetryInterval);
         };
     }, [selectedSensor]);
-    const environmentalGraphData = telemetry
-        .filter(
-            (packet) =>
-                packet.telemetryType === "Environmental"
-        )
-        .map((packet) => {
-            const data =
-                packet.data as Record<string, unknown>;
+    // Telemetry is rendered based on the *selected sensor's* category,
+    // not hardcoded to Environmental, so Power/Actuator sensors show
+    // their own readings instead of an empty temperature chart.
+    const selectedCategory =
+        selectedSensor?.category ?? "Environmental";
 
-            return {
-                time: new Date(
-                    packet.timestamp
-                ).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                }),
+    const categoryTelemetry = telemetry.filter(
+        (packet) => packet.telemetryType === selectedCategory
+    );
 
-                temperature:
-                    typeof data.temperature === "number"
-                        ? data.temperature
-                        : null,
+    const latestReading =
+        categoryTelemetry.length > 0
+            ? categoryTelemetry[categoryTelemetry.length - 1].data
+            : null;
 
-                humidity:
-                    typeof data.humidity === "number"
-                        ? data.humidity
-                        : null,
+    const chartField =
+        CHART_FIELD[selectedCategory] ?? CHART_FIELD.Environmental;
 
-                pressure:
-                    typeof data.pressure === "number"
-                        ? data.pressure
-                        : null,
-            };
-        });
-    async function generateSimulatedReading() {
-        const current = simulatedReadingRef.current;
+    const telemetryGraphData = categoryTelemetry.map((packet) => {
+        const data = packet.data as Record<string, unknown>;
 
-        const temperatureChange =
-            (Math.random() * 2 - 1) * 0.5;
+        const rawValue = data[chartField.key];
 
-        const humidityChange =
-            (Math.random() * 2 - 1) * 1;
+        return {
+            time: new Date(packet.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+            }),
 
-        const pressureChange =
-            (Math.random() * 2 - 1) * 0.5;
-
-        const nextReading: EnvironmentalTelemetry = {
-            temperature: Number(
-                (current.temperature + temperatureChange).toFixed(1)
-            ),
-
-            humidity: Number(
-                Math.max(
-                    0,
-                    Math.min(
-                        100,
-                        current.humidity + humidityChange
-                    )
-                ).toFixed(1)
-            ),
-
-            pressure: Number(
-                (current.pressure + pressureChange).toFixed(1)
-            ),
+            [chartField.key]:
+                typeof rawValue === "number" ? rawValue : null,
         };
-
-        simulatedReadingRef.current = nextReading;
-        setSimulatedReading(nextReading);
-
+    });
+    async function generateSimulatedReading(
+        target: { deviceIdentifier: string; category: string }
+    ) {
         try {
-            await sendEnvironmentalTelemetry({
-                packetId: crypto.randomUUID(),
-                deviceIdentifier: "TEMP-001",
-                timestamp: new Date().toISOString(),
-                telemetryType: "Environmental",
-                data: nextReading,
-            });
+            if (target.category === "PowerConsumption") {
+                const current = simulatedPowerRef.current;
+
+                const nextReading: PowerConsumptionTelemetry = {
+                    voltage: Number(
+                        (current.voltage + (Math.random() * 2 - 1) * 2).toFixed(1)
+                    ),
+                    current: Number(
+                        Math.max(
+                            0,
+                            current.current + (Math.random() * 2 - 1) * 0.3
+                        ).toFixed(2)
+                    ),
+                    power: Number(
+                        Math.max(
+                            0,
+                            current.power + (Math.random() * 2 - 1) * 40
+                        ).toFixed(1)
+                    ),
+                    energyConsumed: Number(
+                        (current.energyConsumed + Math.random() * 0.05).toFixed(2)
+                    ),
+                };
+
+                simulatedPowerRef.current = nextReading;
+                setSimulatedPower(nextReading);
+
+                await sendPowerTelemetry({
+                    packetId: crypto.randomUUID(),
+                    deviceIdentifier: target.deviceIdentifier,
+                    timestamp: new Date().toISOString(),
+                    telemetryType: "PowerConsumption",
+                    data: nextReading,
+                });
+            } else if (target.category === "Actuator") {
+                const current = simulatedActuatorRef.current;
+
+                const states = ["Running", "Idle", "Stopped"];
+
+                const nextReading: ActuatorTelemetry = {
+                    state:
+                        Math.random() < 0.15
+                            ? states[
+                            Math.floor(Math.random() * states.length)
+                            ]
+                            : current.state,
+                    value: Number(
+                        Math.max(
+                            0,
+                            Math.min(
+                                100,
+                                current.value + (Math.random() * 2 - 1) * 5
+                            )
+                        ).toFixed(1)
+                    ),
+                };
+
+                simulatedActuatorRef.current = nextReading;
+                setSimulatedActuator(nextReading);
+
+                await sendActuatorTelemetry({
+                    packetId: crypto.randomUUID(),
+                    deviceIdentifier: target.deviceIdentifier,
+                    timestamp: new Date().toISOString(),
+                    telemetryType: "Actuator",
+                    data: nextReading,
+                });
+            } else {
+                const current = simulatedEnvironmentalRef.current;
+
+                const nextReading: EnvironmentalTelemetry = {
+                    temperature: Number(
+                        (current.temperature + (Math.random() * 2 - 1) * 0.5).toFixed(1)
+                    ),
+                    humidity: Number(
+                        Math.max(
+                            0,
+                            Math.min(
+                                100,
+                                current.humidity + (Math.random() * 2 - 1) * 1
+                            )
+                        ).toFixed(1)
+                    ),
+                    pressure: Number(
+                        (current.pressure + (Math.random() * 2 - 1) * 0.5).toFixed(1)
+                    ),
+                };
+
+                simulatedEnvironmentalRef.current = nextReading;
+                setSimulatedEnvironmental(nextReading);
+
+                await sendEnvironmentalTelemetry({
+                    packetId: crypto.randomUUID(),
+                    deviceIdentifier: target.deviceIdentifier,
+                    timestamp: new Date().toISOString(),
+                    telemetryType: "Environmental",
+                    data: nextReading,
+                });
+            }
 
             setSimulationCount(
                 (currentCount) => currentCount + 1
@@ -368,16 +500,23 @@ function App() {
     }
 
     function startSimulator() {
-        if (simulationIntervalRef.current) {
+        if (simulationIntervalRef.current || !selectedSensor) {
             return;
         }
 
-        setIsSimulating(true);
+        const target = {
+            deviceIdentifier: selectedSensor.deviceIdentifier,
+            category: selectedSensor.category,
+        };
 
-        generateSimulatedReading();
+        setSimulatorTarget(target);
+        setIsSimulating(true);
+        setSimulationCount(0);
+
+        generateSimulatedReading(target);
 
         simulationIntervalRef.current = setInterval(
-            generateSimulatedReading,
+            () => generateSimulatedReading(target),
             3000
         );
     }
@@ -612,9 +751,7 @@ function App() {
         }
     };
 
-
     return (
-
 
         <div className="app">
 
@@ -642,720 +779,773 @@ function App() {
                 </div>
             </header>
 
-            {error && (
+            <nav className="main-nav">
+                {PILLARS.map((pillar) => (
+                    <button
+                        key={pillar.id}
+                        type="button"
+                        className={
+                            "main-nav-item" +
+                            (activePillar === pillar.id
+                                ? " active"
+                                : "") +
+                            (!pillar.enabled ? " disabled" : "")
+                        }
+                        onClick={() => setActivePillar(pillar.id)}
+                    >
+                        {pillar.label}
+                        {!pillar.enabled && (
+                            <span className="badge">
+                                Coming soon
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </nav>
+
+            {activePillar !== "ingestion" && (
+                <main className="dashboard">
+                    <section className="placeholder-section">
+                        <h2>
+                            {
+                                PILLARS.find(
+                                    (pillar) =>
+                                        pillar.id === activePillar
+                                )?.label
+                            }
+                        </h2>
+                        <p>
+                            {activePillar === "command"
+                                ? "Part 2 implementation,real-time command stream, override history, and a predictive action engine."
+                                : "final PoE, adding mesh network visualisation and routing analysis."}
+                        </p>
+                    </section>
+                </main>
+            )}
+
+            {activePillar === "ingestion" && error && (
                 <div className="error-banner">
                     {error}
                 </div>
             )}
 
-            <main className="dashboard">
-                {requiresAttention && (
-                    <section className="attention-section">
-                        <div className="attention-banner">
-                            <div>
-                                <strong>⚠ Attention Required</strong>
+            {activePillar === "ingestion" && (
+                <main className="dashboard">
+                    {requiresAttention && (
+                        <section className="attention-section">
+                            <div className="attention-banner">
+                                <div>
+                                    <strong>⚠ Attention Required</strong>
 
-                                <p>
-                                    {offlineSensors.length > 0 && (
-                                        <>
-                                            {offlineSensors.length} sensor
-                                            {offlineSensors.length !== 1 ? "s" : ""}{" "}
-                                            currently offline.
-                                        </>
-                                    )}
-
-                                    {offlineSensors.length > 0 &&
-                                        unresolvedIssues.length > 0 && (
-                                            <> </>
+                                    <p>
+                                        {offlineSensors.length > 0 && (
+                                            <>
+                                                {offlineSensors.length} sensor
+                                                {offlineSensors.length !== 1 ? "s" : ""}{" "}
+                                                currently offline.
+                                            </>
                                         )}
 
-                                    {unresolvedIssues.length > 0 && (
-                                        <>
-                                            {unresolvedIssues.length} unresolved
-                                            issue
-                                            {unresolvedIssues.length !== 1
-                                                ? "s"
-                                                : ""}{" "}
-                                            requiring attention.
-                                        </>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-                )}
-                <section className="registration-section">
-                    <div className="section-heading">
-                        <div>
-                            <h2>Register Sensor</h2>
-                            <p>
-                                Add a new Smart-X device to the monitoring system
-                            </p>
-                        </div>
-                    </div>
+                                        {offlineSensors.length > 0 &&
+                                            unresolvedIssues.length > 0 && (
+                                                <> </>
+                                            )}
 
-                    <form
-                        className="registration-form"
-                        onSubmit={handleRegisterSensor}
-                    >
-                        <div className="form-group">
-                            <label htmlFor="deviceIdentifier">
-                                Device Identifier
-                            </label>
-                            <input
-                                id="deviceIdentifier"
-                                type="text"
-                                placeholder="e.g. TEMP-002"
-                                value={deviceIdentifier}
-                                onChange={(event) =>
-                                    setDeviceIdentifier(event.target.value)
-                                }
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="macAddress">
-                                MAC Address
-                            </label>
-                            <input
-                                id="macAddress"
-                                type="text"
-                                placeholder="AA:BB:CC:DD:EE:04"
-                                value={macAddress}
-                                onChange={(event) =>
-                                    setMacAddress(event.target.value)
-                                }
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="deploymentLocation">
-                                Deployment Location
-                            </label>
-                            <input
-                                id="deploymentLocation"
-                                type="text"
-                                placeholder="Building A - Room 102"
-                                value={deploymentLocation}
-                                onChange={(event) =>
-                                    setDeploymentLocation(event.target.value)
-                                }
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="category">
-                                Sensor Category
-                            </label>
-                            <select
-                                id="category"
-                                value={category}
-                                onChange={(event) =>
-                                    setCategory(event.target.value)
-                                }
-                            >
-                                <option value="Environmental">
-                                    Environmental
-                                </option>
-                                <option value="PowerConsumption">
-                                    Power Consumption
-                                </option>
-                                <option value="Actuator">
-                                    Actuator
-                                </option>
-                            </select>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="register-button"
-                            disabled={isRegistering}
-                        >
-                            {isRegistering
-                                ? "Registering..."
-                                : "Register Sensor"}
-                        </button>
-                    </form>
-
-                    {registrationMessage && (
-                        <div className="success-banner">
-                            {registrationMessage}
-                        </div>
-                    )}
-                </section>
-                <section className="overview">
-                    <div className="overview-card">
-                        <span>Total Sensors</span>
-                        <strong>{sensors.length}</strong>
-                    </div>
-
-                    <div className="overview-card">
-                        <span>Online</span>
-                        <strong>
-                            {
-                                sensors.filter(
-                                    (sensor) => sensor.isOnline
-                                ).length
-                            }
-                        </strong>
-                    </div>
-
-                    <div className="overview-card">
-                        <span>Offline</span>
-                        <strong>
-                            {
-                                sensors.filter(
-                                    (sensor) => !sensor.isOnline
-                                ).length
-                            }
-                        </strong>
-                    </div>
-                </section>
-
-                <section>
-                    <div className="section-heading">
-                        <div>
-                            <h2>Registered Sensors</h2>
-                            <p>
-                                Monitor connected Smart-X devices
-                            </p>
-                        </div>
-                    </div>
-
-                    {sensors.length === 0 ? (
-                        <div className="empty-state">
-                            <h3>No sensors registered</h3>
-                            <p>
-                                Register a sensor through the Smart-X API
-                                to begin monitoring.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="sensor-grid">
-                            {sensors.map((sensor) => (
-                                <article
-                                    key={sensor.id}
-                                    className={
-                                        selectedSensor?.id === sensor.id
-                                            ? "sensor-card selected"
-                                            : "sensor-card"
-                                    }
-                                    onClick={() => handleSelectSensor(sensor)
-                                    }
-                                    
-                                >
-                                    <div className="sensor-card-header">
-                                        <div>
-                                            <h3>
-                                                {sensor.deviceIdentifier}
-                                            </h3>
-
-                                            <span className="sensor-category">
-                                                {sensor.category}
-                                            </span>
-                                        </div>
-
-                                        <span
-                                            className={
-                                                sensor.isOnline
-                                                    ? "sensor-status online"
-                                                    : "sensor-status offline"
-                                            }
-                                        >
-                                            <span className="status-dot" />
-                                            {sensor.isOnline
-                                                ? "Online"
-                                                : "Offline"}
-                                        </span>
-                                    </div>
-
-                                    <div className="sensor-details">
-                                        <div>
-                                            <span>Location</span>
-                                            <strong>
-                                                {sensor.deploymentLocation}
-                                            </strong>
-                                        </div>
-
-                                        <div>
-                                            <span>MAC Address</span>
-                                            <strong>
-                                                {sensor.macAddress}
-                                            </strong>
-                                        </div>
-                                    </div>
-
-                                    <div className="sensor-last-seen">
-                                        Last seen:{" "}
-                                        {sensor.lastSeen
-                                            ? new Date(
-                                                sensor.lastSeen
-                                            ).toLocaleString()
-                                            : "Never"}
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    )}
-                </section>
-
-                <section className="simulator-section">
-                    <div className="section-heading">
-                        <div>
-                            <h2>Sensor Simulator</h2>
-                            <p>
-                                Simulate live telemetry from TEMP-001
-                            </p>
-                        </div>
-
-                        <span
-                            className={
-                                isSimulating
-                                    ? "simulator-status running"
-                                    : "simulator-status stopped"
-                            }
-                        >
-                            {isSimulating
-                                ? "● Running"
-                                : "● Stopped"}
-                        </span>
-                    </div>
-
-                    <div className="simulator-panel">
-                        <div className="simulator-info">
-                            <span>Simulated Device</span>
-                            <strong>TEMP-001</strong>
-                        </div>
-
-                        <div className="simulator-info">
-                            <span>Temperature</span>
-                            <strong>
-                                {simulatedReading.temperature} °C
-                            </strong>
-                        </div>
-
-                        <div className="simulator-info">
-                            <span>Humidity</span>
-                            <strong>
-                                {simulatedReading.humidity} %
-                            </strong>
-                        </div>
-
-                        <div className="simulator-info">
-                            <span>Pressure</span>
-                            <strong>
-                                {simulatedReading.pressure} hPa
-                            </strong>
-                        </div>
-
-                        <div className="simulator-info">
-                            <span>Readings Sent</span>
-                            <strong>
-                                {simulationCount}
-                            </strong>
-                        </div>
-                    </div>
-
-                    <div className="simulator-controls">
-                        <button
-                            type="button"
-                            onClick={startSimulator}
-                            disabled={isSimulating}
-                            className="primary-button"
-                        >
-                            Start Simulator
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={stopSimulator}
-                            disabled={!isSimulating}
-                            className="secondary-button"
-                        >
-                            Stop Simulator
-                        </button>
-                    </div>
-                </section>
-
-                <section className="telemetry-section">
-                    <div className="section-heading">
-                        <div>
-                            <h2>Telemetry</h2>
-                            <p>
-                                Sensor readings and historical data
-                            </p>
-                        </div>
-                    </div>
-
-                    {!selectedSensor ? (
-    <div className="empty-state">
-        <p>
-            Select a sensor to view telemetry.
-        </p>
-    </div>
-) : telemetry.length === 0 ? (
-    <div className="empty-state">
-        <p>
-            No telemetry data available.
-        </p>
-    </div>
-) : (
-    <div className="telemetry-panel">
-
-        <div className="telemetry-current">
-            <div className="current-reading">
-                <span>Temperature</span>
-
-                <strong>
-                    {environmentalGraphData.length > 0
-                        ? environmentalGraphData[
-                              environmentalGraphData.length - 1
-                          ].temperature
-                        : "--"}{" "}
-                    °C
-                </strong>
-            </div>
-
-            <div className="current-reading">
-                <span>Humidity</span>
-
-                <strong>
-                    {environmentalGraphData.length > 0
-                        ? environmentalGraphData[
-                              environmentalGraphData.length - 1
-                          ].humidity
-                        : "--"}{" "}
-                    %
-                </strong>
-            </div>
-
-            <div className="current-reading">
-                <span>Pressure</span>
-
-                <strong>
-                    {environmentalGraphData.length > 0
-                        ? environmentalGraphData[
-                              environmentalGraphData.length - 1
-                          ].pressure
-                        : "--"}{" "}
-                    hPa
-                </strong>
-            </div>
-        </div>
-
-        <div className="telemetry-chart">
-            <div className="chart-header">
-                <div>
-                    <h3>Environmental Telemetry</h3>
-
-                    <p>
-                        Live temperature readings from{" "}
-                        {selectedSensor.deviceIdentifier}
-                    </p>
-                </div>
-
-                <span className="live-indicator">
-                    ● Live
-                </span>
-            </div>
-
-            <ResponsiveContainer
-                width="100%"
-                height={350}
-            >
-                <LineChart
-                    data={environmentalGraphData}
-                    margin={{
-                        top: 20,
-                        right: 20,
-                        left: 0,
-                        bottom: 10,
-                    }}
-                >
-                    <CartesianGrid
-                        strokeDasharray="3 3"
-                    />
-
-                    <XAxis
-                        dataKey="time"
-                    />
-
-                    <YAxis />
-
-                    <Tooltip />
-
-                    <Line
-                        type="monotone"
-                        dataKey="temperature"
-                        name="Temperature"
-                        strokeWidth={3}
-                        dot={false}
-                    />
-                </LineChart>
-            </ResponsiveContainer>
-        </div>
+                                        {unresolvedIssues.length > 0 && (
+                                            <>
+                                                {unresolvedIssues.length} unresolved
+                                                issue
+                                                {unresolvedIssues.length !== 1
+                                                    ? "s"
+                                                    : ""}{" "}
+                                                requiring attention.
+                                            </>
+                                        )}
+                                    </p>
                                 </div>
-
-)}
-                </section>
-                {selectedSensor && (
-                    <section className="issue-report-section">
+                            </div>
+                        </section>
+                    )}
+                    <section className="registration-section">
                         <div className="section-heading">
                             <div>
-                                <h2>Report an Issue</h2>
+                                <h2>Register Sensor</h2>
                                 <p>
-                                    Report a troubleshooting problem for{" "}
-                                    <strong>
-                                        {selectedSensor.deviceIdentifier}
-                                    </strong>
+                                    Add a new Smart-X device to the monitoring system
                                 </p>
                             </div>
                         </div>
 
                         <form
-                            className="issue-form"
-                            onSubmit={handleReportIssue}
+                            className="registration-form"
+                            onSubmit={handleRegisterSensor}
                         >
                             <div className="form-group">
-                                <label htmlFor="issueDescription">
-                                    Issue Description
+                                <label htmlFor="deviceIdentifier">
+                                    Device Identifier
                                 </label>
-
-                                <textarea
-                                    id="issueDescription"
-                                    placeholder="Describe the problem..."
-                                    value={issueDescription}
+                                <input
+                                    id="deviceIdentifier"
+                                    type="text"
+                                    placeholder="e.g. TEMP-002"
+                                    value={deviceIdentifier}
                                     onChange={(event) =>
-                                        setIssueDescription(
-                                            event.target.value
-                                        )
+                                        setDeviceIdentifier(event.target.value)
                                     }
-                                    rows={4}
                                     required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="issueSeverity">
-                                    Severity
+                                <label htmlFor="macAddress">
+                                    MAC Address
                                 </label>
-
-                                <select
-                                    id="issueSeverity"
-                                    value={issueSeverity}
+                                <input
+                                    id="macAddress"
+                                    type="text"
+                                    placeholder="AA:BB:CC:DD:EE:04"
+                                    value={macAddress}
                                     onChange={(event) =>
-                                        setIssueSeverity(
-                                            event.target.value
-                                        )
+                                        setMacAddress(event.target.value)
+                                    }
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="deploymentLocation">
+                                    Deployment Location
+                                </label>
+                                <input
+                                    id="deploymentLocation"
+                                    type="text"
+                                    placeholder="Building A - Room 102"
+                                    value={deploymentLocation}
+                                    onChange={(event) =>
+                                        setDeploymentLocation(event.target.value)
+                                    }
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="category">
+                                    Sensor Category
+                                </label>
+                                <select
+                                    id="category"
+                                    value={category}
+                                    onChange={(event) =>
+                                        setCategory(event.target.value)
                                     }
                                 >
-                                    <option value="Low">
-                                        Low
+                                    <option value="Environmental">
+                                        Environmental
                                     </option>
-
-                                    <option value="Medium">
-                                        Medium
+                                    <option value="PowerConsumption">
+                                        Power Consumption
                                     </option>
-
-                                    <option value="High">
-                                        High
-                                    </option>
-
-                                    <option value="Critical">
-                                        Critical
+                                    <option value="Actuator">
+                                        Actuator
                                     </option>
                                 </select>
                             </div>
 
                             <button
                                 type="submit"
-                                className="issue-button"
-                                disabled={isReportingIssue}
+                                className="register-button"
+                                disabled={isRegistering}
                             >
-                                {isReportingIssue
-                                    ? "Reporting..."
-                                    : "Report Issue"}
+                                {isRegistering
+                                    ? "Registering..."
+                                    : "Register Sensor"}
                             </button>
                         </form>
 
-                        {issueMessage && (
+                        {registrationMessage && (
                             <div className="success-banner">
-                                {issueMessage}
+                                {registrationMessage}
                             </div>
                         )}
                     </section>
-                )}
-
-                <section className="issues-section">
-                    <div className="section-heading">
-                        <div>
-                            <h2>Reported Issues</h2>
-                            <p>
-                                User-reported troubleshooting issues
-                            </p>
+                    <section className="overview">
+                        <div className="overview-card">
+                            <span>Total Sensors</span>
+                            <strong>{sensors.length}</strong>
                         </div>
-                    </div>
 
-                    {issues.length === 0 ? (
-                        <div className="empty-state">
-                            <h3>No reported issues</h3>
-                            <p>
-                                No sensor issues have been reported.
-                            </p>
+                        <div className="overview-card">
+                            <span>Online</span>
+                            <strong>
+                                {
+                                    sensors.filter(
+                                        (sensor) => sensor.isOnline
+                                    ).length
+                                }
+                            </strong>
                         </div>
-                    ) : (
-                        <div className="issues-list">
-                            {issues.map((issue) => (
-                                <article
-                                    className={
-                                        issue.resolved
-                                            ? "issue-card resolved"
-                                            : "issue-card"
-                                    }
-                                    key={issue.id}
-                                >
-                                    <div className="issue-card-header">
-                                        <div>
-                                            <h3>
-                                                {issue.deviceIdentifier}
-                                            </h3>
 
-                                            <span>
-                                                {new Date(
-                                                    issue.reportedAt
-                                                ).toLocaleString()}
+                        <div className="overview-card">
+                            <span>Offline</span>
+                            <strong>
+                                {
+                                    sensors.filter(
+                                        (sensor) => !sensor.isOnline
+                                    ).length
+                                }
+                            </strong>
+                        </div>
+                    </section>
+
+                    <section>
+                        <div className="section-heading">
+                            <div>
+                                <h2>Registered Sensors</h2>
+                                <p>
+                                    Monitor connected Smart-X devices
+                                </p>
+                            </div>
+                        </div>
+
+                        {sensors.length === 0 ? (
+                            <div className="empty-state">
+                                <h3>No sensors registered</h3>
+                                <p>
+                                    Register a sensor through the Smart-X API
+                                    to begin monitoring.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="sensor-grid">
+                                {sensors.map((sensor) => (
+                                    <article
+                                        key={sensor.id}
+                                        className={
+                                            selectedSensor?.id === sensor.id
+                                                ? "sensor-card selected"
+                                                : "sensor-card"
+                                        }
+                                        onClick={() => handleSelectSensor(sensor)
+                                        }
+
+                                    >
+                                        <div className="sensor-card-header">
+                                            <div>
+                                                <h3>
+                                                    {sensor.deviceIdentifier}
+                                                </h3>
+
+                                                <span className="sensor-category">
+                                                    {sensor.category}
+                                                </span>
+                                            </div>
+
+                                            <span
+                                                className={
+                                                    sensor.isOnline
+                                                        ? "sensor-status online"
+                                                        : "sensor-status offline"
+                                                }
+                                            >
+                                                <span className="status-dot" />
+                                                {sensor.isOnline
+                                                    ? "Online"
+                                                    : "Offline"}
                                             </span>
                                         </div>
 
-                                        <span
-                                            className={`severity-badge ${issue.severity.toLowerCase()}`}
-                                        >
-                                            {issue.severity}
-                                        </span>
-                                    </div>
+                                        <div className="sensor-details">
+                                            <div>
+                                                <span>Location</span>
+                                                <strong>
+                                                    {sensor.deploymentLocation}
+                                                </strong>
+                                            </div>
 
-                                    <p>
-                                        {issue.description}
-                                    </p>
+                                            <div>
+                                                <span>MAC Address</span>
+                                                <strong>
+                                                    {sensor.macAddress}
+                                                </strong>
+                                            </div>
+                                        </div>
 
-                                    <div className="issue-card-footer">
-                                        <span>
-                                            {issue.resolved
-                                                ? "✓ Resolved"
-                                                : "● Open"}
-                                        </span>
+                                        <div className="sensor-last-seen">
+                                            Last seen:{" "}
+                                            {sensor.lastSeen
+                                                ? new Date(
+                                                    sensor.lastSeen
+                                                ).toLocaleString()
+                                                : "Never"}
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
+                    </section>
 
-                                        {!issue.resolved && (
-                                            <button
-                                                type="button"
-                                                className="resolve-button"
-                                                onClick={() =>
-                                                    handleResolveIssue(
-                                                        issue.id
-                                                    )
-                                                }
-                                            >
-                                                Resolve
-                                            </button>
-                                        )}
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    )}
-                </section>
-                {selectedSensor && (
-                    <div className="media-section">
+                    <section className="simulator-section">
                         <div className="section-heading">
-                            <h2>Sensor Attachments</h2>
-                            <p>
-                                Attach diagnostic logs or photos to this sensor.
-                            </p>
-                        </div>
-
-                        <div className="media-panel">
-                            <div className="upload-controls">
-                                <input
-                                    type="file"
-                                    accept=".txt,.log,.jpg,.jpeg,.png"
-                                    onChange={(event) =>
-                                        setSelectedFile(
-                                            event.target.files?.[0] ?? null
-                                        )
-                                    }
-                                />
-
-                                <button
-                                    type="button"
-                                    className="upload-button"
-                                    disabled={
-                                        !selectedFile ||
-                                        uploadingFile
-                                    }
-                                    onClick={handleFileUpload}
-                                >
-                                    {uploadingFile
-                                        ? "Uploading..."
-                                        : "Attach File"}
-                                </button>
+                            <div>
+                                <h2>Sensor Simulator</h2>
+                                <p>
+                                    {selectedSensor
+                                        ? `Simulate live telemetry from ${selectedSensor.deviceIdentifier}`
+                                        : "Select a sensor below to simulate live telemetry"}
+                                </p>
                             </div>
 
-                            <p className="upload-help">
-                                Supported files: TXT, LOG, JPG, JPEG and PNG.
-                                Maximum size: 10 MB.
-                            </p>
+                            <span
+                                className={
+                                    isSimulating
+                                        ? "simulator-status running"
+                                        : "simulator-status stopped"
+                                }
+                            >
+                                {isSimulating
+                                    ? "● Running"
+                                    : "● Stopped"}
+                            </span>
+                        </div>
 
-                            {mediaMessage && (
-                                <div className="success-banner">
-                                    {mediaMessage}
-                                </div>
+                        <div className="simulator-panel">
+                            <div className="simulator-info">
+                                <span>Simulated Device</span>
+                                <strong>
+                                    {simulatorTarget?.deviceIdentifier ??
+                                        selectedSensor?.deviceIdentifier ??
+                                        "None selected"}
+                                </strong>
+                            </div>
+
+                            {(simulatorTarget?.category ?? selectedSensor?.category) ===
+                                "PowerConsumption" ? (
+                                <>
+                                    <div className="simulator-info">
+                                        <span>Voltage</span>
+                                        <strong>{simulatedPower.voltage} V</strong>
+                                    </div>
+                                    <div className="simulator-info">
+                                        <span>Current</span>
+                                        <strong>{simulatedPower.current} A</strong>
+                                    </div>
+                                    <div className="simulator-info">
+                                        <span>Power</span>
+                                        <strong>{simulatedPower.power} W</strong>
+                                    </div>
+                                    <div className="simulator-info">
+                                        <span>Energy Consumed</span>
+                                        <strong>
+                                            {simulatedPower.energyConsumed} kWh
+                                        </strong>
+                                    </div>
+                                </>
+                            ) : (simulatorTarget?.category ?? selectedSensor?.category) ===
+                                "Actuator" ? (
+                                <>
+                                    <div className="simulator-info">
+                                        <span>State</span>
+                                        <strong>{simulatedActuator.state}</strong>
+                                    </div>
+                                    <div className="simulator-info">
+                                        <span>Value</span>
+                                        <strong>{simulatedActuator.value}</strong>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="simulator-info">
+                                        <span>Temperature</span>
+                                        <strong>
+                                            {simulatedEnvironmental.temperature} °C
+                                        </strong>
+                                    </div>
+                                    <div className="simulator-info">
+                                        <span>Humidity</span>
+                                        <strong>
+                                            {simulatedEnvironmental.humidity} %
+                                        </strong>
+                                    </div>
+                                    <div className="simulator-info">
+                                        <span>Pressure</span>
+                                        <strong>
+                                            {simulatedEnvironmental.pressure} hPa
+                                        </strong>
+                                    </div>
+                                </>
                             )}
 
-                            <div className="media-list">
-                                {sensorMedia.length === 0 ? (
-                                    <div className="empty-state">
-                                        <h3>No attachments</h3>
-                                        <p>
-                                            No logs or photos have been attached
-                                            to this sensor yet.
-                                        </p>
+                            <div className="simulator-info">
+                                <span>Readings Sent</span>
+                                <strong>
+                                    {simulationCount}
+                                </strong>
+                            </div>
+                        </div>
+
+                        <div className="simulator-controls">
+                            <button
+                                type="button"
+                                onClick={startSimulator}
+                                disabled={isSimulating || !selectedSensor}
+                                className="primary-button"
+                            >
+                                Start Simulator
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={stopSimulator}
+                                disabled={!isSimulating}
+                                className="secondary-button"
+                            >
+                                Stop Simulator
+                            </button>
+                        </div>
+                    </section>
+
+                    <section className="telemetry-section">
+                        <div className="section-heading">
+                            <div>
+                                <h2>Telemetry</h2>
+                                <p>
+                                    Sensor readings and historical data
+                                </p>
+                            </div>
+                        </div>
+
+                        {!selectedSensor ? (
+                            <div className="empty-state">
+                                <p>
+                                    Select a sensor to view telemetry.
+                                </p>
+                            </div>
+                        ) : categoryTelemetry.length === 0 ? (
+                            <div className="empty-state">
+                                <p>
+                                    No telemetry data available for {selectedSensor.deviceIdentifier} yet.
+                                    Start the simulator above to generate live readings.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="telemetry-panel">
+
+                                <div className="telemetry-current">
+                                    {renderTelemetryData(selectedCategory, latestReading)}
+                                </div>
+
+                                <div className="telemetry-chart">
+                                    <div className="chart-header">
+                                        <div>
+                                            <h3>{chartField.label} Telemetry</h3>
+
+                                            <p>
+                                                Live {chartField.label.toLowerCase()} readings from{" "}
+                                                {selectedSensor.deviceIdentifier}
+                                            </p>
+                                        </div>
+
+                                        <span className="live-indicator">
+                                            ● Live
+                                        </span>
                                     </div>
-                                ) : (
-                                    sensorMedia.map((media) => (
-                                        <div
-                                            className="media-item"
-                                            key={media.id}
+
+                                    <ResponsiveContainer
+                                        width="100%"
+                                        height={350}
+                                    >
+                                        <LineChart
+                                            data={telemetryGraphData}
+                                            margin={{
+                                                top: 20,
+                                                right: 20,
+                                                left: 0,
+                                                bottom: 10,
+                                            }}
                                         >
+                                            <CartesianGrid
+                                                strokeDasharray="3 3"
+                                            />
+
+                                            <XAxis
+                                                dataKey="time"
+                                            />
+
+                                            <YAxis
+                                                unit={chartField.unit ? ` ${chartField.unit}` : ""}
+                                            />
+
+                                            <Tooltip />
+
+                                            <Line
+                                                type="monotone"
+                                                dataKey={chartField.key}
+                                                name={chartField.label}
+                                                strokeWidth={3}
+                                                dot={false}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                        )}
+                    </section>
+                    {selectedSensor && (
+                        <section className="issue-report-section">
+                            <div className="section-heading">
+                                <div>
+                                    <h2>Report an Issue</h2>
+                                    <p>
+                                        Report a troubleshooting problem for{" "}
+                                        <strong>
+                                            {selectedSensor.deviceIdentifier}
+                                        </strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <form
+                                className="issue-form"
+                                onSubmit={handleReportIssue}
+                            >
+                                <div className="form-group">
+                                    <label htmlFor="issueDescription">
+                                        Issue Description
+                                    </label>
+
+                                    <textarea
+                                        id="issueDescription"
+                                        placeholder="Describe the problem..."
+                                        value={issueDescription}
+                                        onChange={(event) =>
+                                            setIssueDescription(
+                                                event.target.value
+                                            )
+                                        }
+                                        rows={4}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="issueSeverity">
+                                        Severity
+                                    </label>
+
+                                    <select
+                                        id="issueSeverity"
+                                        value={issueSeverity}
+                                        onChange={(event) =>
+                                            setIssueSeverity(
+                                                event.target.value
+                                            )
+                                        }
+                                    >
+                                        <option value="Low">
+                                            Low
+                                        </option>
+
+                                        <option value="Medium">
+                                            Medium
+                                        </option>
+
+                                        <option value="High">
+                                            High
+                                        </option>
+
+                                        <option value="Critical">
+                                            Critical
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="issue-button"
+                                    disabled={isReportingIssue}
+                                >
+                                    {isReportingIssue
+                                        ? "Reporting..."
+                                        : "Report Issue"}
+                                </button>
+                            </form>
+
+                            {issueMessage && (
+                                <div className="success-banner">
+                                    {issueMessage}
+                                </div>
+                            )}
+                        </section>
+                    )}
+
+                    <section className="issues-section">
+                        <div className="section-heading">
+                            <div>
+                                <h2>Reported Issues</h2>
+                                <p>
+                                    User-reported troubleshooting issues
+                                </p>
+                            </div>
+                        </div>
+
+                        {issues.length === 0 ? (
+                            <div className="empty-state">
+                                <h3>No reported issues</h3>
+                                <p>
+                                    No sensor issues have been reported.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="issues-list">
+                                {issues.map((issue) => (
+                                    <article
+                                        className={
+                                            issue.resolved
+                                                ? "issue-card resolved"
+                                                : "issue-card"
+                                        }
+                                        key={issue.id}
+                                    >
+                                        <div className="issue-card-header">
                                             <div>
-                                                <strong>
-                                                    {media.originalFileName}
-                                                </strong>
+                                                <h3>
+                                                    {issue.deviceIdentifier}
+                                                </h3>
 
                                                 <span>
-                                                    {(media.fileSize / 1024).toFixed(1)}
-                                                    {" KB"} ·{" "}
                                                     {new Date(
-                                                        media.uploadedAt
+                                                        issue.reportedAt
                                                     ).toLocaleString()}
                                                 </span>
                                             </div>
 
-                                            <span className="media-type">
-                                                {media.contentType}
+                                            <span
+                                                className={`severity-badge ${issue.severity.toLowerCase()}`}
+                                            >
+                                                {issue.severity}
                                             </span>
                                         </div>
-                                    ))
+
+                                        <p>
+                                            {issue.description}
+                                        </p>
+
+                                        <div className="issue-card-footer">
+                                            <span>
+                                                {issue.resolved
+                                                    ? "✓ Resolved"
+                                                    : "● Open"}
+                                            </span>
+
+                                            {!issue.resolved && (
+                                                <button
+                                                    type="button"
+                                                    className="resolve-button"
+                                                    onClick={() =>
+                                                        handleResolveIssue(
+                                                            issue.id
+                                                        )
+                                                    }
+                                                >
+                                                    Resolve
+                                                </button>
+                                            )}
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                    {selectedSensor && (
+                        <div className="media-section">
+                            <div className="section-heading">
+                                <h2>Sensor Attachments</h2>
+                                <p>
+                                    Attach diagnostic logs or photos to this sensor.
+                                </p>
+                            </div>
+
+                            <div className="media-panel">
+                                <div className="upload-controls">
+                                    <input
+                                        type="file"
+                                        accept=".txt,.log,.jpg,.jpeg,.png"
+                                        onChange={(event) =>
+                                            setSelectedFile(
+                                                event.target.files?.[0] ?? null
+                                            )
+                                        }
+                                    />
+
+                                    <button
+                                        type="button"
+                                        className="upload-button"
+                                        disabled={
+                                            !selectedFile ||
+                                            uploadingFile
+                                        }
+                                        onClick={handleFileUpload}
+                                    >
+                                        {uploadingFile
+                                            ? "Uploading..."
+                                            : "Attach File"}
+                                    </button>
+                                </div>
+
+                                <p className="upload-help">
+                                    Supported files: TXT, LOG, JPG, JPEG and PNG.
+                                    Maximum size: 10 MB.
+                                </p>
+
+                                {mediaMessage && (
+                                    <div className="success-banner">
+                                        {mediaMessage}
+                                    </div>
                                 )}
+
+                                <div className="media-list">
+                                    {sensorMedia.length === 0 ? (
+                                        <div className="empty-state">
+                                            <h3>No attachments</h3>
+                                            <p>
+                                                No logs or photos have been attached
+                                                to this sensor yet.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        sensorMedia.map((media) => (
+                                            <div
+                                                className="media-item"
+                                                key={media.id}
+                                            >
+                                                <div>
+                                                    <strong>
+                                                        {media.originalFileName}
+                                                    </strong>
+
+                                                    <span>
+                                                        {(media.fileSize / 1024).toFixed(1)}
+                                                        {" KB"} ·{" "}
+                                                        {new Date(
+                                                            media.uploadedAt
+                                                        ).toLocaleString()}
+                                                    </span>
+                                                </div>
+
+                                                <span className="media-type">
+                                                    {media.contentType}
+                                                </span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </main>
+                    )}
+                </main>
+            )}
         </div>
     );
 }
-
 export default App;
