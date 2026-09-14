@@ -3,6 +3,13 @@ using Smart_X.Api.Models.Telemetry;
 
 namespace Smart_X.Api.Services
 {
+    /// <summary>
+    /// Runs once at startup to simulate real hardware: registers four mock
+    /// sensors and sends telemetry through the SAME ingestion pipeline that
+    /// real devices use, so the seeded data is validated like any other.
+    /// TEMP-002 never sends data, so it stays Offline and has an open issue -
+    /// this shows off the dashboard's "Attention Required" alert.
+    /// </summary>
     public class SeedDataService
     {
         private readonly SensorService _sensorService;
@@ -28,6 +35,7 @@ namespace Smart_X.Api.Services
                 return;
             }
 
+            // 1. Register one sensor per category (plus an offline one).
             var environmentalSensor = _sensorService.RegisterSensor(
                 new DTOs.SensorRegistrationRequest
                 {
@@ -64,6 +72,7 @@ namespace Smart_X.Api.Services
                     Category = SensorCategory.Actuator
                 });
 
+            // 2. Push one generic TelemetryPacket<T> of each type through ingestion.
             await _telemetryService.ProcessTelemetryAsync(
                 new TelemetryPacket<EnvironmentalTelemetry>
                 {
@@ -103,6 +112,7 @@ namespace Smart_X.Api.Services
                     }
                 });
 
+            // 3. Log an unresolved issue for the offline sensor.
             _issueService.AddIssue(
                 new ReportedIssue
                 {

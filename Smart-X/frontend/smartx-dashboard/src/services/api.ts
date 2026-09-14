@@ -1,3 +1,9 @@
+// API INTEGRATION LAYER
+// Every call from the React dashboard to the .NET API lives in this file.
+// The API address comes from the .env file (VITE_API_BASE_URL) rather than
+// being hard-coded, so it can change without editing code.
+// All functions are async: fetch() returns a Promise, so the page stays
+// responsive while waiting for the server.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export interface HealthResponse {
@@ -41,6 +47,8 @@ export interface EnvironmentalTelemetry {
     pressure: number;
 }
 
+// Pushes one environmental reading to POST /api/Telemetry/environmental.
+// The TypeScript TelemetryPacket<T> mirrors the C# generic class.
 export async function sendEnvironmentalTelemetry(
     packet: TelemetryPacket<EnvironmentalTelemetry>
 ) {
@@ -51,10 +59,13 @@ export async function sendEnvironmentalTelemetry(
             headers: {
                 "Content-Type": "application/json",
             },
+            // Convert the object to JSON text for the request body.
             body: JSON.stringify(packet),
         }
     );
 
+    // Any non-2xx status (e.g. 400 from validation) becomes an error
+    // that the dashboard shows in its red error banner.
     if (!response.ok) {
         const errorText = await response.text();
 
@@ -133,6 +144,7 @@ export interface ActuatorTelemetry {
     value: number;
 }
 
+// Frontend version of the C# TelemetryPacket<T> generic envelope.
 export interface TelemetryPacket<T> {
     packetId: string;
     deviceIdentifier: string;
@@ -141,6 +153,7 @@ export interface TelemetryPacket<T> {
     data: T;
 }
 
+// Calls GET /api/health - drives the "Gateway: Online/Offline" indicator.
 export async function getHealth(): Promise<HealthResponse> {
     const response = await fetch(`${API_BASE_URL}/api/health`);
 
@@ -201,6 +214,8 @@ export async function getTelemetry(
     return response.json();
 }
 
+// Uploads a log or photo as multipart/form-data (the browser sets the
+// correct Content-Type header automatically when the body is FormData).
 export async function uploadSensorMedia(
     sensorId: string,
     file: File

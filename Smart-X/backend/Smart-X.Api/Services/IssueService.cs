@@ -2,6 +2,11 @@
 
 namespace Smart_X.Api.Services
 {
+    /// <summary>
+    /// Stores user-reported sensor problems in a List&lt;ReportedIssue&gt;.
+    /// Powers the dashboard's engagement feature (live "Attention Required"
+    /// alerts and the issue list).
+    /// </summary>
     public class IssueService
     {
         private readonly List<ReportedIssue> _issues = [];

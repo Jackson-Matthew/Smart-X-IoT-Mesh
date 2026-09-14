@@ -16,6 +16,7 @@ namespace Smart_X.Api.Controllers
             _aggregationService = aggregationService;
         }
 
+        // POST /api/SensorAggregation - send two readings, get their total back.
         [HttpPost]
         public IActionResult Aggregate(
             [FromBody] SensorReadingPair request)

@@ -161,9 +161,13 @@ function renderTelemetryData(
     );
 }
 
+// GATEWAY STARTUP MENU
+// The three architectural pillars. Only ingestion is enabled for Part 1;
+// the other two show a "Coming soon" badge and a placeholder page.
+// Adding a pillar later just means flipping enabled to true.
 type ActivePillar = "ingestion" | "command" | "topology";
 
-const PILLARS: { id: ActivePillar; label: string; enabled: boolean }[] = [
+const PILLARS:{ id: ActivePillar; label: string; enabled: boolean }[] = [
     {
         id: "ingestion",
         label: "Sensor Data Ingestion & Telemetry",
@@ -217,6 +221,9 @@ function App() {
 
         useState<string | null>(null);
 
+    // DYNAMIC ENGAGEMENT: these values are recalculated on every render,
+    // so the "Attention Required" banner appears/disappears automatically
+    // as sensors go offline or issues are resolved.
     const unresolvedIssues = issues.filter(
         (issue) => !issue.resolved
     );
@@ -275,6 +282,9 @@ function App() {
 
     const simulationIntervalRef =
         useRef<ReturnType<typeof setInterval> | null>(null);
+    // STARTUP: runs once when the dashboard opens.
+    // Loads health, sensors and issues from the API at the same time
+    // (Promise.all), then refreshes them every 10 seconds.
     useEffect(() => {
         const refreshDashboard = async () => {
             try {
@@ -304,6 +314,7 @@ function App() {
             10000
         );
 
+        // Cleanup: stop the timer if the component is removed.
         return () => {
             clearInterval(refreshInterval);
         };
@@ -317,6 +328,8 @@ function App() {
         };
     }, []);
 
+    // LIVE TELEMETRY: when a sensor is selected, fetch its readings
+    // every 3 seconds so the chart updates in near real time.
     useEffect(() => {
         if (!selectedSensor) {
             return;
@@ -383,6 +396,10 @@ function App() {
                 typeof rawValue === "number" ? rawValue : null,
         };
     });
+    // SENSOR SIMULATOR (acts like a real ESP32 device).
+    // Takes the previous reading and nudges it by a small random amount,
+    // so values drift realistically instead of jumping around, then POSTs
+    // it to the matching API endpoint for the sensor's category.
     async function generateSimulatedReading(
         target: { deviceIdentifier: string; category: string }
     ) {
@@ -499,6 +516,7 @@ function App() {
         }
     }
 
+    // Sends one reading immediately, then another every 3 seconds.
     function startSimulator() {
         if (simulationIntervalRef.current || !selectedSensor) {
             return;
@@ -692,16 +710,20 @@ function App() {
     const handleRegisterSensor = async (
         event: FormEvent<HTMLFormElement>
     ) => {
+        // Stop the browser reloading the page on submit.
         event.preventDefault();
 
         setError(null);
         setRegistrationMessage(null);
 
+        // CLIENT-SIDE VALIDATION: catch mistakes instantly before calling
+        // the API. The API validates again on the server.
         if (!deviceIdentifier.trim()) {
             setError("Device identifier is required.");
             return;
         }
 
+        // Six pairs of hex digits separated by colons, e.g. AA:BB:CC:DD:EE:01.
         const macPattern =
             /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
 
@@ -727,6 +749,7 @@ function App() {
                 category,
             });
 
+            // Add the new sensor to the screen straight away (no reload needed).
             setSensors((currentSensors) => [
                 ...currentSensors,
                 newSensor,
@@ -779,6 +802,7 @@ function App() {
                 </div>
             </header>
 
+            {/* Pillar menu: one button per entry in PILLARS */}
             <nav className="main-nav">
                 {PILLARS.map((pillar) => (
                     <button

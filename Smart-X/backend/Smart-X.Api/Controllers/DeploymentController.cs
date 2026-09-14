@@ -16,6 +16,8 @@ namespace Smart_X.Api.Controllers
             _validationService = validationService;
         }
 
+        // POST /api/Deployment/validate - send a nested JSON tree,
+        // get back { valid: true/false } from the recursive validator.
         [HttpPost("validate")]
         public IActionResult ValidateDeployment(
             [FromBody] DeploymentNode node)

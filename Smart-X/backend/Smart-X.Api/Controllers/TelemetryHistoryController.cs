@@ -15,6 +15,8 @@ namespace Smart_X.Api.Controllers
             _telemetryHistory = telemetryHistory;
         }
 
+        // GET /api/TelemetryHistory - returns the jagged array as JSON
+        // (an array of number arrays) plus how many readings it holds.
         [HttpGet]
         public IActionResult GetHistory()
         {
