@@ -58,15 +58,48 @@ VITE_API_BASE_URL=https://localhost:7042
 
 Update this if your API is running on a different port.
 
-## 4. Running with Docker (backend only, optional)
+## 4. Running with Docker (full stack)
+
+As an alternative to steps 2 and 3, Docker Compose builds and runs **both** the API and the dashboard with one command. No local .NET SDK or Node.js install is needed, only [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+From the `Smart-X` folder:
 
 ```bash
-cd backend/Smart-X.Api
-docker build -t smartx-api .
-docker run -p 8080:8080 -p 8081:8081 smartx-api
+docker compose up --build
 ```
 
-If you use the container, update `VITE_API_BASE_URL` in the frontend `.env` to point at the container's port instead of `7042`.
+| Service | URL |
+|---|---|
+| Dashboard | http://localhost:3000 |
+| API health check | http://localhost:8080/api/health |
+| Swagger UI | http://localhost:8080/swagger |
+
+To stop the containers (add `-v` to also delete uploaded files):
+
+```bash
+docker compose down
+```
+
+### How the containers fit together
+
+```
+Browser ──> dashboard container (nginx, port 3000)
+              ├── /        → built React app (static files)
+              └── /api/... → forwarded to api container (ASP.NET Core, port 8080)
+```
+
+| File | Purpose |
+|---|---|
+| `docker-compose.yml` | Defines the `api` and `dashboard` services, their ports, and the `sensor-uploads` volume |
+| `backend/Smart-X.Api/Dockerfile` | Multi-stage build: .NET 10 SDK compiles and publishes, then the smaller ASP.NET runtime image runs it as a non-root user |
+| `frontend/smartx-dashboard/Dockerfile` | Multi-stage build: Node 22 runs `npm run build`, then nginx serves the static `dist` output |
+| `frontend/smartx-dashboard/nginx.conf` | Serves the app, forwards `/api` to the API container, and allows uploads up to 10 MB |
+
+Notes:
+- nginx forwards API calls, so the browser only ever talks to `localhost:3000`. That means no CORS or HTTPS certificate setup is needed, and the image is built with an empty `VITE_API_BASE_URL`.
+- The API runs in `Development` mode inside the container, so Swagger is available.
+- Uploaded sensor files are kept in the `sensor-uploads` Docker volume. Sensors and telemetry are still in-memory and are re-seeded each time the API container starts.
+- To build only the API image: `docker build -f backend/Smart-X.Api/Dockerfile -t smartx-api .` (run from `Smart-X`).
 
 ## Using the app
 

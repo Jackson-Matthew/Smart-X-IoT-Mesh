@@ -1,10 +1,11 @@
 // API INTEGRATION LAYER
 // Every call from the React dashboard to the .NET API lives in this file.
 // The API address comes from the .env file (VITE_API_BASE_URL) rather than
-// being hard-coded, so it can change without editing code.
+// being hard-coded, so it can change without editing code. In Docker it is
+// empty, so calls go to "/api/..." on the same server (nginx forwards them).
 // All functions are async: fetch() returns a Promise, so the page stays
 // responsive while waiting for the server.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export interface HealthResponse {
     status: string;

@@ -1,0 +1,38 @@
+# Runs the full Smart-X stack with one command (from the Smart-X folder):
+#   docker compose up --build
+#
+#   Dashboard:  http://localhost:3000
+#   API:        http://localhost:8080/api/health
+#   Swagger UI: http://localhost:8080/swagger
+
+name: smartx
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Smart-X.Api/Dockerfile
+    container_name: smartx-api
+    environment:
+      # Development turns on Swagger UI; the API listens on plain HTTP inside the container.
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      # Keeps uploaded sensor logs/photos when the container is recreated.
+      - sensor-uploads:/app/uploads
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./frontend/smartx-dashboard
+    container_name: smartx-dashboard
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  sensor-uploads:
