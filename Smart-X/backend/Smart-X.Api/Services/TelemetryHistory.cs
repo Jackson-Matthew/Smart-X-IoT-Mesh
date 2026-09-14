@@ -1,15 +1,15 @@
 ﻿namespace Smart_X.Api.Services
 {
-    /// <summary>
-    /// ARRAYS: sequential history of raw telemetry values.
-    /// Data structure: a JAGGED array, double[][] - an "array of arrays".
-    /// Each row is one reading and rows can be different lengths:
-    ///   _history[0] = [23.5, 48.2, 1012.4]          (environmental: 3 values)
-    ///   _history[1] = [230.4, 4.8, 1105.9, 14.7]    (power: 4 values)
-    ///   _history[2] = [72]                          (actuator: 1 value)
-    /// A rectangular [,] array would force every row to the same length and
-    /// waste space, so a jagged array fits this data better.
-    /// </summary>
+
+    // ARRAYS: sequential history of raw telemetry values.
+    // Data structure: a JAGGED array, double[][] - an "array of arrays".
+    // Each row is one reading and rows can be different lengths:
+    //   (environmental: 3 values)
+    //   (power: 4 values)
+    //   (actuator: 1 value)
+    // A rectangular [] array would force every row to the same length 
+
+
     public class TelemetryHistory
     {
         private double[][] _history = [];

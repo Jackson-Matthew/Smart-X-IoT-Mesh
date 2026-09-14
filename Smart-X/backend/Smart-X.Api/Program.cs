@@ -4,13 +4,13 @@ using Smart_X.Api.Utilities;
 using System.Text.Json.Serialization;
 namespace Smart_X.Api
 {
-    /// <summary>
-    /// Entry point of the Smart-X Data Ingestion Gateway.
-    /// Startup happens in three stages:
-    ///   1. Register services (the "workers" the API needs).
-    ///   2. Build the app and seed it with mock sensors and telemetry.
-    ///   3. Map the URLs (endpoints) and start listening for requests.
-    /// </summary>
+
+    // Entry point of the Smart-X Data Ingestion Gateway.
+    // Startup happens in three stages:
+    // Register services (the "workers" the API needs).
+    // Build the app and seed it with mock sensors and telemetry.
+    // Map the URLs (endpoints) and start listening for requests.
+  
     public class Program
     {
         public static void Main(string[] args)
@@ -60,7 +60,6 @@ namespace Smart_X.Api
                 });
             });
 
-            // STAGE 2 - BUILD AND SEED
             var app = builder.Build();
 
             // Fill the gateway with mock sensors, telemetry and an issue so the
@@ -73,7 +72,6 @@ namespace Smart_X.Api
                 seedDataService.SeedAsync().GetAwaiter().GetResult();
             }
 
-            // STAGE 3 - REQUEST PIPELINE AND ENDPOINTS
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();

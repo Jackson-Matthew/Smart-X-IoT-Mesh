@@ -1,11 +1,11 @@
 ﻿namespace Smart_X.Api.Models
 {
-    /// <summary>
-    /// A simple set of sensor values that can be added together.
-    /// OVERLOADING: C# normally only knows how to "+" numbers and strings.
-    /// Here we overload the + operator so two readings can be combined with
-    /// normal maths syntax:  var total = meter1 + meter2;
-    /// </summary>
+
+    // A simple set of sensor values that can be added together.
+    // OVERLOADING: C# normally only knows how to "+" numbers and strings.
+    // Here we overload the + operator so two readings can be combined with
+    // normal maths syntax:  var total = meter1 + meter2;
+
     public class SensorReading
     {
         public double Temperature { get; set; }

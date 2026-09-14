@@ -3,13 +3,12 @@ using Smart_X.Api.DTOs;
 
 namespace Smart_X.Api.Services
 {
-    /// <summary>
-    /// Stores and manages registered sensors.
-    /// Data structure: a generic List&lt;Sensor&gt;.
-    /// Why a List: it grows automatically as devices are registered, keeps them
-    /// in registration order for the dashboard, and is type-safe (it can only
-    /// hold Sensor objects).
-    /// </summary>
+
+    // Stores and manages registered sensors.
+    // Data structure: a generic List;.
+    // Why a List,  grows automatically as devices are registered, keeps them
+    // in order for the dashboard, and is type-safe ,can only
+    // hold Sensor objects.
     public class SensorService
     {
         // In-memory "database" of sensors. Shared because the service is a singleton.

@@ -5,11 +5,11 @@ using Smart_X.Api.Services;
 
 namespace Smart_X.Api.Controllers
 {
-    /// <summary>
-    /// The "front door" for sensor data (DATA INGESTION).
-    /// Devices POST their readings here; the dashboard GETs them back.
-    /// Base URL: /api/Telemetry
-    /// </summary>
+
+    // The "front door" for sensor data (DATA INGESTION).
+    // Devices POST their readings here; the dashboard GETs them back.
+    // Base URL: /api/Telemetry
+
     [ApiController]
     [Route("api/[controller]")]
     public class TelemetryController : ControllerBase

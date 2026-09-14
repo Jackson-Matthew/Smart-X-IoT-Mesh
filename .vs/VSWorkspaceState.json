@@ -2,11 +2,11 @@
   "ExpandedNodes": [
     "",
     "\\Smart-X",
-    "\\Smart-X\\frontend",
+    "\\Smart-X\\backend",
+    "\\Smart-X\\backend\\Smart-X.Api",
     "\\Smart-X\\frontend\\smartx-dashboard",
-    "\\Smart-X\\frontend\\smartx-dashboard\\src",
-    "\\Smart-X\\frontend\\smartx-dashboard\\src\\services"
+    "\\Smart-X\\frontend\\smartx-dashboard\\src"
   ],
-  "SelectedNode": "\\Smart-X\\frontend\\smartx-dashboard\\src\\services\\api.ts",
+  "SelectedNode": "\\Smart-X\\backend\\Smart-X.Api\\Services",
   "PreviewInSolutionExplorer": false
 }

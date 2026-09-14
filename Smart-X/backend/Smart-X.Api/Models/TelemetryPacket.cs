@@ -1,14 +1,13 @@
 ﻿namespace Smart_X.Api.Models
 {
-    /// <summary>
-    /// GENERICS: a reusable "envelope" for sensor data.
-    /// T is a placeholder filled in when the packet is created, e.g.
-    ///   TelemetryPacket&lt;EnvironmentalTelemetry&gt;
-    ///   TelemetryPacket&lt;PowerConsumptionTelemetry&gt;
-    /// The envelope fields (ID, device, time) are written once, only the
-    /// contents change. Because Data is stored as its real type T - not as
-    /// "object" - no casting or boxing/unboxing is needed to read it.
-    /// </summary>
+    // GENERICS: a reusable "envelope" for sensor data.
+    // T is a placeholder filled in when the packet is created, e.g.
+    //   TelemetryPacket EnvironmentalTelemetry
+    //   TelemetryPacket PowerConsumptionTelemetry
+    // The envelope fields (ID, device, time) are written once, only the
+    // contents change. Because Data is stored as its real type T - not as
+    // "object" - no casting or boxing/unboxing is needed to read it.
+    // </summary>
     public class TelemetryPacket<T> : ITelemetryPacket
     {
         public Guid PacketId { get; set; } = Guid.NewGuid();

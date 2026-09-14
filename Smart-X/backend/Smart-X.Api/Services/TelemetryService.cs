@@ -5,16 +5,13 @@ using Smart_X.Api.Models.Telemetry;
 namespace Smart_X.Api.Services
 {
 
-
-    /// <summary>
-    /// The DATA INGESTION PIPELINE. Every reading passes through these steps:
-    ///   1. Check the packet is complete (device ID and data present).
-    ///   2. Look up the registered sensor that sent it.
-    ///   3. Check the data type matches the sensor's category.
-    ///   4. Mark the sensor Online and record when it was last seen.
-    ///   5. Store the full packet in the repository (List).
-    ///   6. Extract the raw numbers and add them to the jagged-array history.
-    /// </summary>
+    // The DATA INGESTION PIPELINE. Every reading passes through these steps:
+    //   1. Check the packet is complete (device ID and data present).
+    //   2. Look up the registered sensor that sent it.
+    //   3. Check the data type matches the sensor's category.
+    //   4. Mark the sensor Online and record when it was last seen.
+    //   5. Store the full packet in the repository (List).
+    //   6. Extract the raw numbers and add them to the jagged-array history.
     public class TelemetryService : ITelemetryService
     {
         private readonly ITelemetryRepository _telemetryRepository;
@@ -36,7 +33,7 @@ namespace Smart_X.Api.Services
         public async Task ProcessTelemetryAsync<T>(
             TelemetryPacket<T> packet)
         {
-            // STEP 1 - the packet must be complete.
+           //check if the packet must is complete.
             ArgumentNullException.ThrowIfNull(packet);
 
             if (string.IsNullOrWhiteSpace(packet.DeviceIdentifier))
@@ -53,7 +50,7 @@ namespace Smart_X.Api.Services
                     nameof(packet));
             }
 
-            // STEP 2 - only registered devices may send data.
+            // only registered devices may send data.
             var sensor = _sensorService
                 .GetSensorByDeviceIdentifier(
                     packet.DeviceIdentifier);
@@ -65,7 +62,7 @@ namespace Smart_X.Api.Services
                     $"'{packet.DeviceIdentifier}'.");
             }
 
-            // STEP 3 - e.g. a power meter may not send temperature readings.
+            // power meter may not send temperature readings.
             if (!IsTelemetryCompatible<T>(sensor.Category))
             {
                 throw new InvalidOperationException(
@@ -74,16 +71,16 @@ namespace Smart_X.Api.Services
                     $"'{sensor.Category}'.");
             }
 
-            // STEP 4 - receiving data proves the device is alive.
+            // receiving data proves the device is alive.
             sensor.IsOnline = true;
             sensor.LastSeen = packet.Timestamp;
 
             _sensorService.UpdateSensor(sensor);
 
-            // STEP 5 - keep the whole packet so the dashboard can chart it.
+            // keep the whole packet so the dashboard can chart it.
             await _telemetryRepository.AddAsync(packet);
 
-            // STEP 6 - store just the numbers as one row in the jagged array.
+            //  store just the numbers as one row in the jagged array.
             var values = ExtractTelemetryValues(packet);
 
             _telemetryHistory.AddReading(values);
