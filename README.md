@@ -1,6 +1,8 @@
 # Smart-X — IoT Mesh Ecosystem (Part 1)
 
 Smart-X is a simulated IoT ingestion gateway for a distributed sensor network (soil moisture, power meters, smart valves, etc). Part 1 covers sensor registration, telemetry ingestion, and file/log attachments.
+## Video Link
+https://youtu.be/AW7prJNJZyg
 
 ## Architecture
 
