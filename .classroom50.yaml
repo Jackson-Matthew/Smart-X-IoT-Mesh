@@ -1,0 +1,7 @@
+schema: "classroom50/repo-config/v1"
+classroom: "prog7312-2026"
+assignment: "prog7312-part-2"
+owner:
+  username: "Jackson-Matthew"
+  id: 164759934
+  accepted_at: "2026-09-17T08:15:33Z"
