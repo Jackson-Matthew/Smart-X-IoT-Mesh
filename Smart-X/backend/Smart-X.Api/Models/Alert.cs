@@ -20,5 +20,12 @@ namespace Smart_X.Api.Models
         public string Message { get; set; } = string.Empty;
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+        // When the alert joined the priority queue, and how many normal
+        // readings were already waiting. Used by the Processing Log to show
+        // how far a critical alert jumped the line.
+        public DateTime QueuedAt { get; set; } = DateTime.UtcNow;
+
+        public int BacklogAtArrival { get; set; }
     }
 }
