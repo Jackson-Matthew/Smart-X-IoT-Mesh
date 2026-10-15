@@ -1144,3 +1144,50 @@ textarea {
         align-items: stretch;
     }
 }
+
+/* Device import panel */
+.import-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.import-row button {
+    background: var(--color-primary);
+    color: #fff;
+    border: 0;
+    border-radius: var(--radius-sm);
+    padding: 9px 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.import-row button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.import-result ul {
+    list-style: none;
+    margin: var(--space-xs) 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.88rem;
+}
+
+.import-ok li {
+    color: var(--color-success-strong);
+}
+
+.import-bad li {
+    color: var(--color-danger-strong);
+}
+
+.import-bad small {
+    display: block;
+    color: var(--color-text-muted);
+}

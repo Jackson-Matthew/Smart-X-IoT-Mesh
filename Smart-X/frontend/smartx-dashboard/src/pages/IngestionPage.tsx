@@ -37,6 +37,7 @@ import {
     type PowerConsumptionTelemetry,
     type ActuatorTelemetry
 } from "../services/api";
+import DeviceImport from "../components/DeviceImport";
 
 const CHART_FIELD: Record<
     string,
@@ -898,6 +899,13 @@ function IngestionPage() {
                             </div>
                         )}
                     </section>
+
+                    <DeviceImport
+                        onImported={async () => {
+                            setSensors(await getSensors());
+                        }}
+                    />
+
                     <section className="overview">
                         <div className="overview-card">
                             <span>Total Sensors</span>

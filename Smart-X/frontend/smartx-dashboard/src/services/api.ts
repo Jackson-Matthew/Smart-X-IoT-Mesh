@@ -320,3 +320,30 @@ export async function resolveIssue(
         );
     }
 }
+
+export interface DeviceImportResult {
+    linesRead: number;
+    imported: Sensor[];
+    skipped: { lineNumber: number; text: string; reason: string }[];
+}
+
+// Uploads a .txt device list (multipart). The API parses it and registers
+// every valid line, then reports what was imported and what was skipped.
+export async function importDevices(file: File): Promise<DeviceImportResult> {
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/api/sensors/import`, {
+        method: "POST",
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(errorData?.error || "Unable to import devices.");
+    }
+
+    return response.json();
+}
