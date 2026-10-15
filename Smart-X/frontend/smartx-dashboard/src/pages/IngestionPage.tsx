@@ -36,7 +36,7 @@ import {
     type EnvironmentalTelemetry,
     type PowerConsumptionTelemetry,
     type ActuatorTelemetry
-} from "./services/api";
+} from "../services/api";
 
 const CHART_FIELD: Record<
     string,
@@ -161,34 +161,11 @@ function renderTelemetryData(
     );
 }
 
-// GATEWAY STARTUP MENU
-// The three architectural pillars. Only ingestion is enabled for Part 1;
-// the other two show a "Coming soon" badge and a placeholder page.
-// Adding a pillar later just means flipping enabled to true.
-type ActivePillar = "ingestion" | "command" | "topology";
-
-const PILLARS:{ id: ActivePillar; label: string; enabled: boolean }[] = [
-    {
-        id: "ingestion",
-        label: "Sensor Data Ingestion & Telemetry",
-        enabled: true
-    },
-    {
-        id: "command",
-        label: "Real-Time Command Stream & History",
-        enabled: false
-    },
-    {
-        id: "topology",
-        label: "Network Topology & Mesh Routing",
-        enabled: false
-    }
-];
-
-function App() {
-    const [activePillar, setActivePillar] =
-        useState<ActivePillar>("ingestion");
-    const [health, setHealth] = useState<HealthResponse | null>(null);
+// PILLAR 1: Sensor Data Ingestion & Telemetry (Part 1).
+// The header and navigation menu now live in App.tsx; this page is only
+// the ingestion module itself.
+function IngestionPage() {
+    const [, setHealth] = useState<HealthResponse | null>(null);
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
     const [telemetry, setTelemetry] =
@@ -776,84 +753,13 @@ function App() {
 
     return (
 
-        <div className="app">
-
-            <header className="dashboard-header">
-                <div>
-                    <h1>Smart-X</h1>
-                    <p>IoT Mesh Ecosystem</p>
-                </div>
-
-                <div className="gateway-status">
-                    <span
-                        className={
-                            health
-                                ? "status-dot online"
-                                : "status-dot offline"
-                        }
-                    />
-
-                    <span>
-                        Gateway:{" "}
-                        <strong>
-                            {health ? "Online" : "Offline"}
-                        </strong>
-                    </span>
-                </div>
-            </header>
-
-            {/* Pillar menu: one button per entry in PILLARS */}
-            <nav className="main-nav">
-                {PILLARS.map((pillar) => (
-                    <button
-                        key={pillar.id}
-                        type="button"
-                        className={
-                            "main-nav-item" +
-                            (activePillar === pillar.id
-                                ? " active"
-                                : "") +
-                            (!pillar.enabled ? " disabled" : "")
-                        }
-                        onClick={() => setActivePillar(pillar.id)}
-                    >
-                        {pillar.label}
-                        {!pillar.enabled && (
-                            <span className="badge">
-                                Coming soon
-                            </span>
-                        )}
-                    </button>
-                ))}
-            </nav>
-
-            {activePillar !== "ingestion" && (
-                <main className="dashboard">
-                    <section className="placeholder-section">
-                        <h2>
-                            {
-                                PILLARS.find(
-                                    (pillar) =>
-                                        pillar.id === activePillar
-                                )?.label
-                            }
-                        </h2>
-                        <p>
-                            {activePillar === "command"
-                                ? "Part 2 implementation,real-time command stream, override history, and a predictive action engine."
-                                : "final PoE, adding mesh network visualisation and routing analysis."}
-                        </p>
-                    </section>
-                </main>
-            )}
-
-            {activePillar === "ingestion" && error && (
+        <>
+            {error && (
                 <div className="error-banner">
                     {error}
                 </div>
             )}
 
-            {activePillar === "ingestion" && (
                 <main className="dashboard">
                     {requiresAttention && (
                         <section className="attention-section">
@@ -1568,8 +1474,8 @@ function App() {
                         </div>
                     )}
                 </main>
-            )}
-        </div>
+        </>
     );
 }
-export default App;
+
+export default IngestionPage;
