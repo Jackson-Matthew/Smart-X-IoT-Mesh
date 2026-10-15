@@ -4,7 +4,7 @@ import { getHealth, type HealthResponse } from "./services/api";
 import CommandStreamPage from "./pages/CommandStreamPage";
 import IngestionPage from "./pages/IngestionPage";
 
-// APP SHELL: header + navigation for the three architectural pillars.
+// DASHBOARD SHELL (shown only after sign-in): header + navigation for the three architectural pillars.
 //
 // Both active pages stay MOUNTED and are only hidden when you switch tabs
 // (the `hidden` attribute). Because they are never unmounted, their state,
@@ -18,7 +18,13 @@ const PILLARS: { id: Pillar; label: string; enabled: boolean }[] = [
     { id: "topology", label: "Network Topology & Mesh Routing", enabled: false },
 ];
 
-function App() {
+function Dashboard({
+    email,
+    onSignOut,
+}: {
+    email: string;
+    onSignOut: () => void;
+}) {
     const [active, setActive] = useState<Pillar>("ingestion");
     const [health, setHealth] = useState<HealthResponse | null>(null);
 
@@ -47,6 +53,13 @@ function App() {
                     <span>
                         Gateway: <strong>{health ? "Online" : "Offline"}</strong>
                     </span>
+
+                    <span className="user-chip" title={email}>
+                        {email}
+                    </span>
+                    <button type="button" className="signout-btn" onClick={onSignOut}>
+                        Sign out
+                    </button>
                 </div>
             </header>
 
@@ -80,4 +93,4 @@ function App() {
     );
 }
 
-export default App;
+export default Dashboard;
