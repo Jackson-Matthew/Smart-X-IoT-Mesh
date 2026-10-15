@@ -10,9 +10,9 @@
     --px-teal: #4fd1c5;
     --px-teal-dark: #38b2ac;
     --px-teal-darker: #319795;
-    --px-ink: #2d3748;
-    --px-gray: #a0aeb8;
-    --px-gray-text: #718096;
+    --px-ink: #1a202c;
+    --px-gray: #4a5568;
+    --px-gray-text: #2d3748;
     --px-canvas: #f8f9fa;
     --px-card-shadow: 0 3.5px 5.5px rgba(0, 0, 0, 0.04);
     --px-lift-shadow: 0 7px 23px rgba(0, 0, 0, 0.07);
@@ -25,7 +25,7 @@
     --color-border-alt: #e2e8f0;
     --color-text: var(--px-ink);
     --color-text-muted: var(--px-gray-text);
-    --color-text-strong: var(--px-ink);
+    --color-text-strong: #000000;
     --color-primary: var(--px-teal-dark);
     --color-primary-hover: var(--px-teal-darker);
     --color-primary-soft: rgba(79, 209, 197, 0.16);
