@@ -30,11 +30,14 @@ import {
     type TimelinePacket,
 } from "../services/commandApi";
 import {
-    DRY_DEVICE,
+    PUMP_DEVICE,
+    SENSOR_DEVICE,
     SPIKE_DEVICE,
-    injectFault,
+    injectPowerSpike,
     sendOneReading,
     sendReadingsForAll,
+    setActuatorStates,
+    startDrought,
 } from "../services/deviceSimulator";
 
 // Which fields of each category are drawn on the live chart.
@@ -128,7 +131,11 @@ function CommandStreamPage() {
         if (a.status === "fulfilled") setAlerts(a.value);
         if (st.status === "fulfilled") setStatus(st.value);
         if (h.status === "fulfilled") setHistory(h.value);
-        if (cs.status === "fulfilled") setStates(cs.value);
+        if (cs.status === "fulfilled") {
+            setStates(cs.value);
+            // The simulated pump/soil react to the commands the operator sends.
+            setActuatorStates(cs.value);
+        }
         if (ins.status === "fulfilled") setInsights(ins.value);
 
         setError(
@@ -152,7 +159,10 @@ function CommandStreamPage() {
 
         setCommandTarget((current) => {
             if (current) return current;
-            const actuator = sensors.find((x) => x.category === "Actuator");
+            // Prefer the greenhouse pump, otherwise the first actuator.
+            const actuator =
+                sensors.find((x) => x.deviceIdentifier === PUMP_DEVICE) ??
+                sensors.find((x) => x.category === "Actuator");
             return actuator?.deviceIdentifier ?? "";
         });
     }, [sensors]);
@@ -305,18 +315,36 @@ function CommandStreamPage() {
         }
     }
 
-    async function triggerFault(deviceId: string, label: string) {
-        const sensor = sensors.find((s) => s.deviceIdentifier === deviceId);
+    // Power spike: a few identical bad packets in a row, which still raise
+    // only ONE alert (the HashSet blocks the duplicates).
+    async function triggerPowerSpike() {
+        const sensor = sensors.find((s) => s.deviceIdentifier === SPIKE_DEVICE);
 
         if (!sensor) {
-            setMessage(`Device ${deviceId} is not registered.`);
+            setMessage(`Device ${SPIKE_DEVICE} is not registered.`);
             return;
         }
 
-        // Several bad packets in a row -> still only ONE alert (HashSet).
-        injectFault(deviceId, 3);
+        injectPowerSpike(3);
         await sendOneReading(sensor);
-        setMessage(`${label} injected on ${deviceId}.`);
+        setMessage(`Power spike (3800 W) injected on ${SPIKE_DEVICE}.`);
+        setTimeout(refresh, 400);
+    }
+
+    // Dry soil: moisture keeps falling until the pump is switched on.
+    async function triggerDrySoil() {
+        const sensor = sensors.find((s) => s.deviceIdentifier === SENSOR_DEVICE);
+
+        if (!sensor) {
+            setMessage(`Device ${SENSOR_DEVICE} is not registered.`);
+            return;
+        }
+
+        startDrought();
+        await sendOneReading(sensor);
+        setMessage(
+            `Soil on ${SENSOR_DEVICE} is drying out. Switch ${PUMP_DEVICE} on to recover it.`
+        );
         setTimeout(refresh, 400);
     }
 
@@ -607,7 +635,7 @@ function CommandStreamPage() {
             <section className="cs-panel">
                 <PillarHeading
                     title="Device Simulator"
-                    subtitle="Sends readings to the API like real ESP32 nodes. TEMP-002 stays silent on purpose."
+                    subtitle="Sends readings to the API like real ESP32 nodes. Dry soil only recovers while Pump A is on. TEMP-002 stays silent on purpose."
                 />
 
                 <div className="cs-buttons">
@@ -618,7 +646,7 @@ function CommandStreamPage() {
                     <button
                         type="button"
                         className="cs-danger"
-                        onClick={() => triggerFault(SPIKE_DEVICE, "Power spike (3800 W)")}
+                        onClick={triggerPowerSpike}
                     >
                         ⚡ Simulate power spike
                     </button>
@@ -626,9 +654,9 @@ function CommandStreamPage() {
                     <button
                         type="button"
                         className="cs-danger"
-                        onClick={() => triggerFault(DRY_DEVICE, "Moisture drop (12%)")}
+                        onClick={triggerDrySoil}
                     >
-                        💧 Simulate moisture drop
+                        💧 Simulate dry soil
                     </button>
                 </div>
             </section>
