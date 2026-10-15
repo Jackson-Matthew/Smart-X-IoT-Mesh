@@ -44,6 +44,8 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<SensorTimeline>();
             builder.Services.AddSingleton<DisconnectedNodes>();
             builder.Services.AddSingleton<AlertService>();
+            builder.Services.AddSingleton<CommandService>();
+            builder.Services.AddHostedService<DisconnectMonitor>();
 
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();
