@@ -25,9 +25,15 @@ services:
     restart: unless-stopped
 
   dashboard:
+    container_name: smartx-dashboard
     build:
       context: ./frontend/smartx-dashboard
-    container_name: smartx-dashboard
+      args:
+        # Read from Smart-X/.env (see README, Firebase setup).
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
     ports:
       - "3000:80"
     depends_on:
