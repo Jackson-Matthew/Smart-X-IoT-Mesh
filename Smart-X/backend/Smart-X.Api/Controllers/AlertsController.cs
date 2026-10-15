@@ -14,14 +14,17 @@ namespace Smart_X.Api.Controllers
         private readonly TelemetryQueue _telemetryQueue;
         private readonly CriticalAlertQueue _criticalAlerts;
         private readonly SensorTimeline _timeline;
+        private readonly ProcessingLog _processingLog;
 
         public AlertsController(
             AlertService alerts,
             DisconnectedNodes disconnectedNodes,
             TelemetryQueue telemetryQueue,
             CriticalAlertQueue criticalAlerts,
-            SensorTimeline timeline)
+            SensorTimeline timeline,
+            ProcessingLog processingLog)
         {
+            _processingLog = processingLog;
             _alerts = alerts;
             _disconnectedNodes = disconnectedNodes;
             _telemetryQueue = telemetryQueue;
@@ -32,6 +35,11 @@ namespace Smart_X.Api.Controllers
         // GET /api/alerts - processed alerts, newest first (no duplicates).
         [HttpGet]
         public IActionResult GetAlerts() => Ok(_alerts.GetRecent());
+
+        // GET /api/alerts/processing-log - the order things were processed
+        // in (critical alerts vs queued telemetry), newest first.
+        [HttpGet("processing-log")]
+        public IActionResult GetProcessingLog() => Ok(_processingLog.GetRecent());
 
         // GET /api/alerts/status - HashSet contents + queue depths.
         [HttpGet("status")]
