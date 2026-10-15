@@ -46,6 +46,7 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<PredictionEngine>();
             builder.Services.AddSingleton<AlertService>();
             builder.Services.AddSingleton<CommandService>();
+            builder.Services.AddSingleton<DeviceImportService>();
             builder.Services.AddHostedService<DisconnectMonitor>();
 
             builder.Services.AddSingleton<SensorService>();
