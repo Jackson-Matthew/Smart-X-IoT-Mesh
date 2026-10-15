@@ -31,3 +31,6 @@ backend/**/*.env
 
 *.log
 *.tmp
+# Visual Studio local state
+.vs/
+
