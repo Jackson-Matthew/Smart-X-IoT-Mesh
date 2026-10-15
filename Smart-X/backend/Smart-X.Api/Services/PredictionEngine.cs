@@ -316,7 +316,7 @@ namespace Smart_X.Api.Services
         // ---------------------------------------------------------------
         // DEMO HISTORY: past operator behaviour so the engine has something
         // real to learn from on first start. Same Record() path as live use.
-        // Pattern: low moisture on TEMP-001 -> search ACT-001 -> pump on.
+        // Pattern: low moisture on MOIST-001 -> search "Pump A" -> pump on.
         // ---------------------------------------------------------------
         public void SeedHistory()
         {
@@ -328,17 +328,17 @@ namespace Smart_X.Api.Services
 
                 Record(new UserAction
                 {
-                    Kind = "Alert", DeviceIdentifier = "TEMP-001",
+                    Kind = "Alert", DeviceIdentifier = "MOIST-001",
                     Detail = "LowMoisture", Timestamp = t
                 });
                 Record(new UserAction
                 {
-                    Kind = "Search", Detail = "act-001",
+                    Kind = "Search", Detail = "Pump A",
                     Timestamp = t.AddSeconds(20)
                 });
                 Record(new UserAction
                 {
-                    Kind = "Command", DeviceIdentifier = "ACT-001",
+                    Kind = "Command", DeviceIdentifier = "PUMP-001",
                     Detail = "PumpOn", Value = "On",
                     Timestamp = t.AddSeconds(45)
                 });

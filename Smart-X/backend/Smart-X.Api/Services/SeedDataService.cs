@@ -72,7 +72,39 @@ namespace Smart_X.Api.Services
                     Category = SensorCategory.Actuator
                 });
 
+            // Part 2: hydroponics devices used by the Command Stream demo.
+            var moistureSensor = _sensorService.RegisterSensor(
+                new DTOs.SensorRegistrationRequest
+                {
+                    DeviceIdentifier = "MOIST-001",
+                    MacAddress = "AA:BB:CC:DD:EE:05",
+                    DeploymentLocation = "Greenhouse 1 - Bed B",
+                    Category = SensorCategory.Environmental
+                });
+
+            _sensorService.RegisterSensor(
+                new DTOs.SensorRegistrationRequest
+                {
+                    DeviceIdentifier = "PUMP-001",
+                    MacAddress = "AA:BB:CC:DD:EE:06",
+                    DeploymentLocation = "Greenhouse 1 - Pump A",
+                    Category = SensorCategory.Actuator
+                });
+
             // 2. Push one generic TelemetryPacket<T> of each type through ingestion.
+            await _telemetryService.ProcessTelemetryAsync(
+                new TelemetryPacket<EnvironmentalTelemetry>
+                {
+                    DeviceIdentifier = moistureSensor.DeviceIdentifier,
+                    Timestamp = DateTime.UtcNow.AddSeconds(-20),
+                    Data = new EnvironmentalTelemetry
+                    {
+                        Temperature = 24.1,
+                        Humidity = 55,
+                        Pressure = 1010
+                    }
+                });
+
             await _telemetryService.ProcessTelemetryAsync(
                 new TelemetryPacket<EnvironmentalTelemetry>
                 {
