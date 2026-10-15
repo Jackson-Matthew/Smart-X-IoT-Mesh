@@ -43,6 +43,7 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<CommandUndoStack>();
             builder.Services.AddSingleton<SensorTimeline>();
             builder.Services.AddSingleton<DisconnectedNodes>();
+            builder.Services.AddSingleton<AlertService>();
 
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();

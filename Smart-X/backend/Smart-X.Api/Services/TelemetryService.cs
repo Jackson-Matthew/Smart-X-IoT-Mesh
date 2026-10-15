@@ -1,4 +1,5 @@
-﻿using Smart_X.Api.Models;
+﻿using Smart_X.Api.DataStructures;
+using Smart_X.Api.Models;
 using Smart_X.Api.Models.Telemetry;
 
 
@@ -18,14 +19,35 @@ namespace Smart_X.Api.Services
         private readonly SensorService _sensorService;
         private readonly TelemetryHistory _telemetryHistory;
 
+        // Part 2 data structures.
+        private readonly TelemetryQueue _telemetryQueue;
+        private readonly CriticalAlertQueue _criticalAlerts;
+        private readonly SensorTimeline _timeline;
+        private readonly DisconnectedNodes _disconnectedNodes;
+        private readonly AlertService _alertService;
+
+        // Only one thread drains the queues at a time, so FIFO order is kept
+        // even when many devices POST at once.
+        private readonly object _drainLock = new();
+
         public TelemetryService(
             ITelemetryRepository telemetryRepository,
             SensorService sensorService,
-            TelemetryHistory telemetryHistory)
+            TelemetryHistory telemetryHistory,
+            TelemetryQueue telemetryQueue,
+            CriticalAlertQueue criticalAlerts,
+            SensorTimeline timeline,
+            DisconnectedNodes disconnectedNodes,
+            AlertService alertService)
         {
             _telemetryRepository = telemetryRepository;
             _sensorService = sensorService;
             _telemetryHistory = telemetryHistory;
+            _telemetryQueue = telemetryQueue;
+            _criticalAlerts = criticalAlerts;
+            _timeline = timeline;
+            _disconnectedNodes = disconnectedNodes;
+            _alertService = alertService;
         }
 
         // Generic method: T is whichever telemetry class arrived, so one
@@ -77,13 +99,66 @@ namespace Smart_X.Api.Services
 
             _sensorService.UpdateSensor(sensor);
 
+            // the node is talking again, so it is no longer "disconnected"
+            // (this also lets a future disconnect alert fire again).
+            if (_disconnectedNodes.MarkReconnected(sensor.DeviceIdentifier))
+            {
+                _disconnectedNodes.ClearAlert(
+                    sensor.DeviceIdentifier, "Disconnected");
+            }
+
+            // Normal path: the packet joins the back of the FIFO queue.
+            _telemetryQueue.Enqueue(packet);
+
+            // Alert path: dangerous readings go on the PRIORITY queue. The
+            // HashSet only lets the first alert for a device/problem through.
+            foreach (var (alertType, alert) in AlertRules.Evaluate(packet))
+            {
+                if (alert == null)
+                {
+                    // Reading is healthy again - allow this alert to fire later.
+                    _disconnectedNodes.ClearAlert(
+                        packet.DeviceIdentifier, alertType);
+                }
+                else if (_disconnectedNodes.TryRaiseAlert(
+                    packet.DeviceIdentifier, alertType))
+                {
+                    _criticalAlerts.Enqueue(alert);
+                }
+            }
+
+            await DrainQueuesAsync();
+        }
+
+        // Critical alerts are processed FIRST, ahead of any waiting telemetry.
+        // Then the normal queue is emptied oldest-first (FIFO).
+        private async Task DrainQueuesAsync()
+        {
+            var toStore = new List<ITelemetryPacket>();
+
+            lock (_drainLock)
+            {
+                while (_criticalAlerts.TryDequeue(out var alert))
+                {
+                    _alertService.Add(alert!);
+                }
+
+                while (_telemetryQueue.TryDequeue(out var queued))
+                {
+                    toStore.Add(queued!);
+
+                    // sorted timeline + jagged-array history.
+                    _timeline.Add(queued!);
+                    _telemetryHistory.AddReading(
+                        ExtractTelemetryValues(queued!));
+                }
+            }
+
             // keep the whole packet so the dashboard can chart it.
-            await _telemetryRepository.AddAsync(packet);
-
-            //  store just the numbers as one row in the jagged array.
-            var values = ExtractTelemetryValues(packet);
-
-            _telemetryHistory.AddReading(values);
+            foreach (var packet in toStore)
+            {
+                await _telemetryRepository.AddAsync(packet);
+            }
         }
 
         // typeof(T) tells us, at runtime, which telemetry class T was filled with.
@@ -112,8 +187,8 @@ namespace Smart_X.Api.Services
         // Flattens a packet into a simple double[] (one row of numbers).
         // Rows have different lengths: environmental = 3, power = 4,
         // actuator = 1 - which is exactly why a JAGGED array is used for history.
-        private static double[] ExtractTelemetryValues<T>(
-    TelemetryPacket<T> packet)
+        private static double[] ExtractTelemetryValues(
+    ITelemetryPacket packet)
         {
             if (packet.Data is EnvironmentalTelemetry environmental)
             {
