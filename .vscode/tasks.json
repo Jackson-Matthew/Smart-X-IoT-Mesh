@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            // Terminal > Run Task > "Smart-X: Docker (build and run)"
+            "label": "Smart-X: Docker (build and run)",
+            "type": "shell",
+            "command": "docker compose up --build",
+            "options": { "cwd": "${workspaceFolder}/Smart-X" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Smart-X: Docker (stop)",
+            "type": "shell",
+            "command": "docker compose down",
+            "options": { "cwd": "${workspaceFolder}/Smart-X" },
+            "problemMatcher": []
+        },
+        {
+            "label": "Smart-X: Install frontend packages",
+            "type": "shell",
+            "command": "npm install",
+            "options": { "cwd": "${workspaceFolder}/Smart-X/frontend/smartx-dashboard" },
+            "problemMatcher": []
+        }
+    ]
+}
