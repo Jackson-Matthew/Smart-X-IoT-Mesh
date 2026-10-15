@@ -1191,3 +1191,19 @@ textarea {
     display: block;
     color: var(--color-text-muted);
 }
+
+/* Queue stress test */
+.cs-explain {
+    margin: 0 0 var(--space-sm);
+    line-height: 1.55;
+    color: var(--color-text);
+}
+
+.cs-subhead {
+    margin: 0 0 var(--space-xs);
+    font-size: 0.95rem;
+}
+
+.cs-processing .sev-1 {
+    border-left: 4px solid var(--color-danger) !important;
+}

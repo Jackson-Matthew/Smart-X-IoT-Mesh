@@ -159,3 +159,27 @@ export async function sendReadingsForAll(sensors: Sensor[]): Promise<void> {
     // allSettled: one failing device must not stop the others.
     await Promise.allSettled(sensors.map(sendOneReading));
 }
+
+// ---------------------------------------------------------------
+// Stress test: a burst of normal readings followed by ONE critical spike.
+// The burst arrives faster than the API processes it, so a backlog builds in
+// the FIFO queue; the spike is sent LAST but is processed FIRST.
+// ---------------------------------------------------------------
+export async function runStressTest(sensors: Sensor[], count = 150): Promise<void> {
+    const senders = sensors.filter((s) => !SILENT_DEVICES.has(s.deviceIdentifier));
+
+    if (senders.length === 0) return;
+
+    // Round-robin across the devices (this includes healthy POWER-001
+    // readings, which also re-arm the spike alert).
+    await Promise.allSettled(
+        Array.from({ length: count }, (_, i) => sendOneReading(senders[i % senders.length]))
+    );
+
+    const meter = sensors.find((s) => s.deviceIdentifier === SPIKE_DEVICE);
+
+    if (meter) {
+        injectPowerSpike(1);
+        await sendOneReading(meter);
+    }
+}

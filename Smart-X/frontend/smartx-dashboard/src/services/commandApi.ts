@@ -123,3 +123,14 @@ export const recordSearch = (query: string) =>
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
     });
+
+export interface ProcessingEvent {
+    sequence: number;
+    kind: string;
+    message: string;
+    timestamp: string;
+}
+
+// The order things were processed in (critical alerts vs queued readings).
+export const getProcessingLog = () =>
+    request<ProcessingEvent[]>("/api/alerts/processing-log");

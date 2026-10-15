@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+    Area,
+    AreaChart,
     CartesianGrid,
     Line,
     LineChart,
@@ -18,6 +20,7 @@ import {
     getCommandHistory,
     getCommandStates,
     getInsights,
+    getProcessingLog,
     getTimeline,
     issueCommand,
     recordSearch,
@@ -25,6 +28,7 @@ import {
     type AlertStatus,
     type DeviceCommand,
     type InsightsResponse,
+    type ProcessingEvent,
     type StreamAlert,
     type Suggestion,
     type TimelinePacket,
@@ -34,6 +38,7 @@ import {
     SENSOR_DEVICE,
     SPIKE_DEVICE,
     injectPowerSpike,
+    runStressTest,
     sendOneReading,
     sendReadingsForAll,
     setActuatorStates,
@@ -109,6 +114,12 @@ function CommandStreamPage() {
     const sensorsRef = useRef<Sensor[]>([]);
     const lastRecordedSearch = useRef("");
 
+    // Stress test: processing log + queue depth sampled while it runs.
+    const [log, setLog] = useState<ProcessingEvent[]>([]);
+    const [trace, setTrace] = useState<{ t: number; depth: number }[]>([]);
+    const [stressRunning, setStressRunning] = useState(false);
+    const latestDepth = useRef(0);
+
     // ---------------------------------------------------------------
     // POLLING: refresh everything every 2 seconds (all calls in parallel).
     // ---------------------------------------------------------------
@@ -120,9 +131,12 @@ function CommandStreamPage() {
             getCommandHistory(),
             getCommandStates(),
             getInsights(),
+            getProcessingLog(),
         ]);
 
-        const [s, a, st, h, cs, ins] = results;
+        const [s, a, st, h, cs, ins, lg] = results;
+
+        if (lg.status === "fulfilled") setLog(lg.value);
 
         if (s.status === "fulfilled") {
             setSensors(s.value);
@@ -329,6 +343,57 @@ function CommandStreamPage() {
         await sendOneReading(sensor);
         setMessage(`Power spike (3800 W) injected on ${SPIKE_DEVICE}.`);
         setTimeout(refresh, 400);
+    }
+
+    // Stress test: 150 readings arrive faster than the API processes them,
+    // then ONE power spike is sent last. The queue depth is sampled every
+    // 300 ms so the backlog and the spike jumping the line are visible.
+    async function handleStressTest() {
+        if (stressRunning) return;
+
+        setStressRunning(true);
+        setTrace([]);
+        setMessage("Stress test running: 150 normal readings, then 1 critical power spike.");
+
+        const startedAt = Date.now();
+
+        const sampler = setInterval(async () => {
+            try {
+                const [st, lg] = await Promise.all([getAlertStatus(), getProcessingLog()]);
+
+                latestDepth.current = st.telemetryQueueDepth;
+                setStatus(st);
+                setLog(lg);
+                setTrace((previous) => [
+                    ...previous,
+                    {
+                        t: Number(((Date.now() - startedAt) / 1000).toFixed(1)),
+                        depth: st.telemetryQueueDepth,
+                    },
+                ]);
+            } catch {
+                /* the next sample will retry */
+            }
+        }, 300);
+
+        await runStressTest(sensorsRef.current, 150);
+
+        // Keep sampling until the queue has drained (or 15 s have passed).
+        await new Promise<void>((resolve) => {
+            const watcher = setInterval(() => {
+                const elapsed = Date.now() - startedAt;
+
+                if (elapsed > 15000 || (latestDepth.current === 0 && elapsed > 2500)) {
+                    clearInterval(watcher);
+                    resolve();
+                }
+            }, 300);
+        });
+
+        clearInterval(sampler);
+        setStressRunning(false);
+        setMessage("Stress test finished. Read the Processing Log below to see the order.");
+        refresh();
     }
 
     // Dry soil: moisture keeps falling until the pump is switched on.
@@ -628,6 +693,78 @@ function CommandStreamPage() {
                             </li>
                         ))}
                     </ul>
+                </div>
+            </section>
+
+            {/* QUEUE STRESS TEST */}
+            <section className="cs-panel">
+                <PillarHeading
+                    title="Queue Stress Test"
+                    subtitle="150 readings arrive at once, then one critical power spike is sent LAST"
+                />
+
+                <p className="cs-explain">
+                    Readings are queued first-in, first-out and processed at
+                    about 50 per second, so a burst creates a backlog. A
+                    critical alert goes on the priority queue instead and is
+                    handled on the very next tick, ahead of every reading still
+                    waiting.
+                </p>
+
+                <div className="cs-buttons">
+                    <button type="button" className="cs-danger" disabled={stressRunning} onClick={handleStressTest}>
+                        {stressRunning ? "Running..." : "🚀 Run stress test"}
+                    </button>
+                </div>
+
+                <div className="cs-two-col">
+                    <div>
+                        <h3 className="cs-subhead">Telemetry queue depth (live)</h3>
+
+                        {trace.length === 0 ? (
+                            <p className="cs-empty">Run the test to see the backlog build and drain.</p>
+                        ) : (
+                            <div className="cs-chart">
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <AreaChart data={trace}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="t" unit="s" />
+                                        <YAxis allowDecimals={false} />
+                                        <Tooltip />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="depth"
+                                            name="Readings waiting"
+                                            stroke="#319795"
+                                            fill="#4fd1c5"
+                                            fillOpacity={0.35}
+                                            isAnimationActive={false}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <h3 className="cs-subhead">Processing log (newest first)</h3>
+
+                        <ul className="cs-list cs-processing">
+                            {log.length === 0 && <li className="cs-empty">Nothing processed under load yet.</li>}
+
+                            {log.map((e) => (
+                                <li
+                                    key={e.sequence}
+                                    className={e.kind === "Critical alert" ? "sev-1" : ""}
+                                >
+                                    <strong>
+                                        #{e.sequence} · {e.kind}
+                                    </strong>
+                                    <p>{e.message}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </section>
 
