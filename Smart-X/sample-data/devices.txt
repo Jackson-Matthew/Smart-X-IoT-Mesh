@@ -1,0 +1,15 @@
+# Smart-X device list - import this on the Ingestion page.
+# Format: DeviceId, MAC address, Location, Category
+# Categories: Environmental, PowerConsumption, Actuator
+
+SOIL-101, AA:BB:CC:00:01:01, Greenhouse 2 - Bed A, Environmental
+SOIL-102, AA:BB:CC:00:01:02, Greenhouse 2 - Bed B, Environmental
+METER-201, AA:BB:CC:00:02:01, Building B - Main Meter, PowerConsumption
+METER-202, AA:BB:CC:00:02:02, Building B - Sub Meter, power
+PUMP-102, AA:BB:CC:00:03:01, Greenhouse 2 - Pump B, Actuator
+RELAY-301, AA:BB:CC:00:03:02, Plant Room - Relay 1, Actuator
+
+# The lines below are deliberately wrong, to show the error report:
+BAD-001, NOT-A-MAC, Roof, Environmental
+BAD-002, AA:BB:CC:00:09:09, Roof, Toaster
+SOIL-101, AA:BB:CC:00:01:09, Duplicate ID, Environmental
