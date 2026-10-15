@@ -1,17 +1,22 @@
 import { useState, type FormEvent } from "react";
 
+import { Logo } from "../components/Logo";
+import { WaveBackdrop } from "../components/WaveBackdrop";
 import {
     firebaseConfigured,
     friendlyAuthError,
     signIn,
     signUp,
 } from "../services/firebase";
-import { Logo } from "../components/Logo";
+import "../auth.css";
 
 type Mode = "signin" | "signup";
 
-// Sign in / create account. On success Firebase tells App.tsx (watchAuth),
-// which then swaps this screen for the dashboard automatically.
+// Sign in / create account, styled after the Purity UI auth pages:
+//   sign in  -> form on the left, teal brand panel on the right
+//   register -> teal banner with a floating card
+// On success Firebase tells App.tsx (watchAuth), which swaps this screen
+// for the dashboard automatically.
 function AuthPage({ onBack }: { onBack: () => void }) {
     const [mode, setMode] = useState<Mode>("signin");
     const [email, setEmail] = useState("");
@@ -53,89 +58,139 @@ function AuthPage({ onBack }: { onBack: () => void }) {
         }
     }
 
-    return (
-        <div className="auth-screen">
-            <div className="auth-card">
-                <button type="button" className="auth-back" onClick={onBack}>
-                    ← Back
+    function switchMode() {
+        setMode(mode === "signin" ? "signup" : "signin");
+        setError(null);
+        setPassword("");
+        setConfirm("");
+    }
+
+    const form = (
+        <form onSubmit={handleSubmit} noValidate>
+            <label>
+                Email
+                <input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Your email address"
+                />
+            </label>
+
+            <label>
+                Password
+                <input
+                    type="password"
+                    autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Your password"
+                />
+            </label>
+
+            {mode === "signup" && (
+                <label>
+                    Confirm password
+                    <input
+                        type="password"
+                        autoComplete="new-password"
+                        value={confirm}
+                        onChange={(e) => setConfirm(e.target.value)}
+                        placeholder="Repeat your password"
+                    />
+                </label>
+            )}
+
+            {!firebaseConfigured && (
+                <div className="pa-warning">
+                    Authentication is not configured. Add the Firebase
+                    settings (VITE_FIREBASE_*) to Smart-X/.env and rebuild.
+                </div>
+            )}
+
+            {error && <div className="pa-error">{error}</div>}
+
+            <button type="submit" className="pa-submit" disabled={busy}>
+                {busy ? "Please wait..." : mode === "signin" ? "Sign in" : "Sign up"}
+            </button>
+
+            <p className="pa-switch">
+                {mode === "signin" ? "Don't have an account?" : "Already have an account?"}{" "}
+                <button type="button" onClick={switchMode}>
+                    {mode === "signin" ? "Sign up" : "Sign in"}
                 </button>
+            </p>
+        </form>
+    );
 
-                <Logo />
+    const topBar = (
+        <header className="pa-nav">
+            <Logo />
+            <button type="button" onClick={onBack}>
+                ← Back to home
+            </button>
+        </header>
+    );
 
-                <h1>{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
-                <p className="auth-sub">
-                    {mode === "signin"
-                        ? "Sign in to the Smart-X operations console."
-                        : "Register to access the Smart-X operations console."}
-                </p>
+    const footer = (
+        <footer className="pa-footer">
+            <span>© 2026 Smart-X IoT Mesh Ecosystem · PROG7312</span>
+        </footer>
+    );
 
-                {!firebaseConfigured && (
-                    <div className="auth-warning">
-                        Authentication is not configured. Add the Firebase
-                        settings (VITE_FIREBASE_*) to the .env file and
-                        rebuild.
-                    </div>
-                )}
+    if (mode === "signin") {
+        return (
+            <div className="pa-screen">
+                {topBar}
 
-                <form onSubmit={handleSubmit} noValidate>
-                    <label>
-                        Email
-                        <input
-                            type="email"
-                            autoComplete="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@company.com"
-                        />
-                    </label>
+                <main className="pa-split">
+                    <section className="pa-split-form">
+                        <h1 className="pa-title">Welcome Back</h1>
+                        <p className="pa-sub">Enter your email and password to sign in</p>
+                        {form}
+                    </section>
 
-                    <label>
-                        Password
-                        <input
-                            type="password"
-                            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="At least 6 characters"
-                        />
-                    </label>
+                    <aside className="pa-split-brand">
+                        <WaveBackdrop />
+                        <div className="pa-brand-mark">
+                            <Logo light />
+                            <p>Real-time IoT operations</p>
+                        </div>
+                    </aside>
+                </main>
 
-                    {mode === "signup" && (
-                        <label>
-                            Confirm password
-                            <input
-                                type="password"
-                                autoComplete="new-password"
-                                value={confirm}
-                                onChange={(e) => setConfirm(e.target.value)}
-                            />
-                        </label>
-                    )}
-
-                    {error && <div className="auth-error">{error}</div>}
-
-                    <button type="submit" className="auth-submit" disabled={busy}>
-                        {busy
-                            ? "Please wait..."
-                            : mode === "signin"
-                              ? "Sign in"
-                              : "Create account"}
-                    </button>
-                </form>
-
-                <p className="auth-switch">
-                    {mode === "signin" ? "New to Smart-X?" : "Already registered?"}{" "}
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setMode(mode === "signin" ? "signup" : "signin");
-                            setError(null);
-                        }}
-                    >
-                        {mode === "signin" ? "Create an account" : "Sign in"}
-                    </button>
-                </p>
+                {footer}
             </div>
+        );
+    }
+
+    return (
+        <div className="pa-screen">
+            <section className="pa-banner">
+                <WaveBackdrop />
+                <div className="pa-banner-nav">
+                    <Logo light />
+                    <button type="button" onClick={onBack}>
+                        ← Back to home
+                    </button>
+                </div>
+
+                <div className="pa-banner-text">
+                    <h1>Welcome!</h1>
+                    <p>
+                        Create an account to open the Smart-X operations
+                        console and start monitoring your devices.
+                    </p>
+                </div>
+            </section>
+
+            <main className="pa-card">
+                <h2>Register with email</h2>
+                {form}
+            </main>
+
+            {footer}
         </div>
     );
 }

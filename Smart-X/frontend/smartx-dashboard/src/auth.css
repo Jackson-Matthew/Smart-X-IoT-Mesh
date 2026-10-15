@@ -1,0 +1,284 @@
+/* SIGN IN / REGISTER (Purity UI look: teal brand panel, rounded inputs) */
+
+.pa-screen {
+    min-height: 100vh;
+    background: #f4f7fe;
+    color: #2d3748;
+    display: flex;
+    flex-direction: column;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* ---------- shared form ---------- */
+.pa-title {
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 2.3rem);
+    font-weight: 700;
+    color: #4fd1c5;
+}
+
+.pa-sub {
+    margin: 6px 0 28px;
+    color: #a0aec0;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.pa-screen form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pa-screen label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.pa-screen input {
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 15px;
+    background: #fff;
+    font-size: 0.95rem;
+    color: #2d3748;
+}
+
+.pa-screen input::placeholder {
+    color: #a0aec0;
+}
+
+.pa-screen input:focus {
+    outline: 2px solid #4fd1c5;
+    border-color: transparent;
+}
+
+.pa-submit {
+    margin-top: 6px;
+    padding: 14px;
+    border: 0;
+    border-radius: 12px;
+    background: #4fd1c5;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pa-submit:hover:not(:disabled) {
+    background: #38b2ac;
+}
+
+.pa-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.pa-error,
+.pa-warning {
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+}
+
+.pa-error {
+    background: #fed7d7;
+    color: #9b2c2c;
+}
+
+.pa-warning {
+    background: #feebc8;
+    color: #7b341e;
+}
+
+.pa-switch {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 0.88rem;
+    color: #a0aec0;
+}
+
+.pa-switch button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #4fd1c5;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pa-footer {
+    margin-top: auto;
+    padding: 22px clamp(16px, 4vw, 48px);
+    font-size: 0.78rem;
+    color: #a0aec0;
+}
+
+.pa-waves {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* ---------- sign in: split layout ---------- */
+.pa-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px clamp(16px, 4vw, 48px) 0;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    box-shadow: 0 3.5px 5.5px rgba(0, 0, 0, 0.04);
+    position: relative;
+    z-index: 2;
+    width: min(100% - 32px, 560px);
+}
+
+.pa-nav button,
+.pa-banner-nav button {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.pa-split {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin-top: -56px;
+}
+
+.pa-split-form {
+    align-self: center;
+    justify-self: center;
+    width: min(100% - 32px, 400px);
+    padding: 90px 0 40px;
+}
+
+.pa-split-brand {
+    position: relative;
+    overflow: hidden;
+    min-height: 480px;
+    background: linear-gradient(145deg, #4fd1c5 0%, #38b2ac 100%);
+    border-bottom-left-radius: 25px;
+    display: grid;
+    place-items: center;
+}
+
+.pa-brand-mark {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    text-align: center;
+    transform: scale(1.6);
+}
+
+.pa-brand-mark p {
+    margin: 6px 0 0;
+    font-size: 0.78rem;
+    opacity: 0.9;
+}
+
+/* ---------- register: banner + floating card ---------- */
+.pa-banner {
+    position: relative;
+    overflow: hidden;
+    margin: 16px clamp(0px, 1vw, 16px) 0;
+    min-height: 330px;
+    padding: 18px clamp(16px, 4vw, 48px) 110px;
+    background: linear-gradient(145deg, #4fd1c5 0%, #38b2ac 100%);
+    border-radius: 25px;
+    color: #fff;
+}
+
+.pa-banner-nav {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.pa-banner-nav button {
+    color: #fff;
+}
+
+.pa-banner-text {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin: 44px auto 0;
+    max-width: 440px;
+}
+
+.pa-banner-text h1 {
+    margin: 0 0 8px;
+    font-size: 2.1rem;
+}
+
+.pa-banner-text p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.92;
+    line-height: 1.5;
+}
+
+.pa-card {
+    position: relative;
+    z-index: 2;
+    width: min(100% - 32px, 400px);
+    margin: -120px auto 40px;
+    padding: 30px 28px 26px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 27px rgba(0, 0, 0, 0.06);
+}
+
+.pa-card h2 {
+    margin: 0 0 22px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #2d3748;
+}
+
+/* ---------- small screens ---------- */
+@media (max-width: 860px) {
+    .pa-split {
+        grid-template-columns: 1fr;
+        margin-top: 0;
+    }
+
+    .pa-split-form {
+        padding: 40px 0;
+    }
+
+    .pa-split-brand {
+        order: -1;
+        min-height: 170px;
+        border-radius: 0 0 25px 25px;
+    }
+
+    .pa-brand-mark {
+        transform: none;
+    }
+
+    .pa-nav {
+        margin-bottom: 12px;
+    }
+}
