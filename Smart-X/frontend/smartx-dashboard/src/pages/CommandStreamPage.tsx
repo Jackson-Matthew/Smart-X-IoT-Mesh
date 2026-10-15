@@ -10,6 +10,7 @@ import {
     YAxis,
 } from "recharts";
 
+import { Icon } from "../components/Icons";
 import { getSensors, type Sensor } from "../services/api";
 import {
     getAlertStatus,
@@ -39,13 +40,13 @@ import {
 // Which fields of each category are drawn on the live chart.
 const CHART_LINES: Record<string, { key: string; label: string; color: string }[]> = {
     Environmental: [
-        { key: "temperature", label: "Temperature (°C)", color: "#dc2626" },
-        { key: "humidity", label: "Moisture (%)", color: "#2563eb" },
+        { key: "temperature", label: "Temperature (°C)", color: "#2d3748" },
+        { key: "humidity", label: "Moisture (%)", color: "#4fd1c5" },
     ],
     PowerConsumption: [
-        { key: "power", label: "Power (W)", color: "#f97316" },
+        { key: "power", label: "Power (W)", color: "#4fd1c5" },
     ],
-    Actuator: [{ key: "value", label: "Output (%)", color: "#16a34a" }],
+    Actuator: [{ key: "value", label: "Output (%)", color: "#4fd1c5" }],
 };
 
 type AlertState = "Alerting" | "Disconnected" | "Healthy";
@@ -336,22 +337,27 @@ function CommandStreamPage() {
                 <div className="cs-stat">
                     <span>Telemetry queue (FIFO)</span>
                     <strong>{status.telemetryQueueDepth}</strong>
+                    <span className="cs-stat-icon"><Icon name="queue" size={22} /></span>
                 </div>
-                <div className="cs-stat">
+                <div className={"cs-stat" + (status.criticalQueueDepth > 0 ? " danger" : "")}>
                     <span>Critical queue (priority)</span>
                     <strong>{status.criticalQueueDepth}</strong>
+                    <span className="cs-stat-icon"><Icon name="bolt" size={22} /></span>
                 </div>
-                <div className="cs-stat">
+                <div className={"cs-stat" + (status.disconnectedNodes.length > 0 ? " warn" : "")}>
                     <span>Disconnected nodes (set)</span>
                     <strong>{status.disconnectedNodes.length}</strong>
+                    <span className="cs-stat-icon"><Icon name="offline" size={22} /></span>
                 </div>
-                <div className="cs-stat">
+                <div className={"cs-stat" + (status.activeAlertKeys.length > 0 ? " danger" : "")}>
                     <span>Active alerts (set)</span>
                     <strong>{status.activeAlertKeys.length}</strong>
+                    <span className="cs-stat-icon"><Icon name="alert" size={22} /></span>
                 </div>
                 <div className="cs-stat">
                     <span>Undo stack</span>
                     <strong>{history.length}</strong>
+                    <span className="cs-stat-icon"><Icon name="stack" size={22} /></span>
                 </div>
             </section>
 
