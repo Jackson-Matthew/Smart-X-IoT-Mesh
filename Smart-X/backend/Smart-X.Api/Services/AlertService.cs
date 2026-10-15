@@ -11,9 +11,24 @@ namespace Smart_X.Api.Services
 
         private readonly List<Alert> _processed = [];
         private readonly object _lock = new();
+        private readonly PredictionEngine _engine;
+
+        public AlertService(PredictionEngine engine)
+        {
+            _engine = engine;
+        }
 
         public void Add(Alert alert)
         {
+            // Every processed alert is also a data point the engine learns from.
+            _engine.Record(new UserAction
+            {
+                Kind = "Alert",
+                DeviceIdentifier = alert.DeviceIdentifier,
+                Detail = alert.AlertType,
+                Timestamp = alert.Timestamp
+            });
+
             lock (_lock)
             {
                 _processed.Add(alert);

@@ -43,6 +43,7 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<CommandUndoStack>();
             builder.Services.AddSingleton<SensorTimeline>();
             builder.Services.AddSingleton<DisconnectedNodes>();
+            builder.Services.AddSingleton<PredictionEngine>();
             builder.Services.AddSingleton<AlertService>();
             builder.Services.AddSingleton<CommandService>();
             builder.Services.AddHostedService<DisconnectMonitor>();
@@ -82,6 +83,11 @@ namespace Smart_X.Api
                     .GetRequiredService<SeedDataService>();
 
                 seedDataService.SeedAsync().GetAwaiter().GetResult();
+
+                // Give the predictive engine some past operator behaviour to learn from.
+                scope.ServiceProvider
+                    .GetRequiredService<PredictionEngine>()
+                    .SeedHistory();
             }
 
             if (app.Environment.IsDevelopment())

@@ -17,10 +17,16 @@ namespace Smart_X.Api.Services
 
         private readonly object _lock = new();
 
-        public CommandService(DeviceRegistry registry, CommandUndoStack undoStack)
+        private readonly PredictionEngine _engine;
+
+        public CommandService(
+            DeviceRegistry registry,
+            CommandUndoStack undoStack,
+            PredictionEngine engine)
         {
             _registry = registry;
             _undoStack = undoStack;
+            _engine = engine;
         }
 
         // Returns the stored command, or throws ArgumentException for a bad request.
@@ -54,6 +60,16 @@ namespace Smart_X.Api.Services
 
                 _states[sensor.DeviceIdentifier] = newState;
                 _undoStack.Push(command);
+
+                // The engine learns from every manual command.
+                _engine.Record(new UserAction
+                {
+                    Kind = "Command",
+                    DeviceIdentifier = command.DeviceIdentifier,
+                    Detail = command.CommandName,
+                    Value = command.NewState
+                });
+
                 return command;
             }
         }
