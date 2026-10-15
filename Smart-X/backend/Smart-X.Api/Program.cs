@@ -1,3 +1,4 @@
+using Smart_X.Api.DataStructures;
 using Smart_X.Api.Services;
 using SmartX.Api.Endpoints;
 using Smart_X.Api.Utilities;
@@ -34,10 +35,18 @@ namespace Smart_X.Api
             // Dependency injection: each service is created ONCE (singleton) and
             // shared by every request. Because data is stored in memory, singletons
             // make sure every request sees the same list of sensors and telemetry.
+            // Part 2 data structures: one shared instance of each so every
+            // request works on the same queues, stack, dictionaries and sets.
+            builder.Services.AddSingleton<DeviceRegistry>();
+            builder.Services.AddSingleton<TelemetryQueue>();
+            builder.Services.AddSingleton<CriticalAlertQueue>();
+            builder.Services.AddSingleton<CommandUndoStack>();
+            builder.Services.AddSingleton<SensorTimeline>();
+            builder.Services.AddSingleton<DisconnectedNodes>();
+
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();
             builder.Services.AddSingleton<DeploymentValidator>();
-            builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ITelemetryService, TelemetryService>();
             builder.Services.AddSingleton<ITelemetryRepository, TelemetryRepository>();
             builder.Services.AddSingleton<TelemetryHistory>();

@@ -1,5 +1,6 @@
 using Smart_X.Api.Models;
 using Smart_X.Api.DTOs;
+using Smart_X.Api.DataStructures;
 
 namespace Smart_X.Api.Services
 {
@@ -13,6 +14,15 @@ namespace Smart_X.Api.Services
     {
         // In-memory "database" of sensors. Shared because the service is a singleton.
         private readonly List<Sensor> _sensors = [];
+
+        // Part 2: the Dictionary-based registry gives O(1) lookups by node ID
+        // or MAC address, so telemetry never has to scan the list above.
+        private readonly DeviceRegistry _registry;
+
+        public SensorService(DeviceRegistry registry)
+        {
+            _registry = registry;
+        }
 
         // Turns the incoming request into a full Sensor record and stores it.
         public Sensor RegisterSensor(SensorRegistrationRequest request)
@@ -29,6 +39,7 @@ namespace Smart_X.Api.Services
             };
 
             _sensors.Add(sensor);
+            _registry.Register(sensor);
             return sensor;
         }
 
@@ -44,15 +55,16 @@ namespace Smart_X.Api.Services
         }
 
         // Used during ingestion: devices identify themselves by name (e.g. "TEMP-001").
-        // The comparison ignores upper/lower case.
+        // Dictionary lookup (case-insensitive), no looping through a list.
         public Sensor? GetSensorByDeviceIdentifier(
             string deviceIdentifier)
         {
-            return _sensors.FirstOrDefault(sensor =>
-                string.Equals(
-                    sensor.DeviceIdentifier,
-                    deviceIdentifier,
-                    StringComparison.OrdinalIgnoreCase));
+            return _registry.FindByNodeId(deviceIdentifier);
+        }
+
+        public Sensor? GetSensorByMac(string macAddress)
+        {
+            return _registry.FindByMac(macAddress);
         }
 
         // Copies new values onto the stored sensor (e.g. IsOnline, LastSeen).
