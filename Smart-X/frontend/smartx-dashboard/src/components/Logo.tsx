@@ -8,8 +8,8 @@ export function Logo({ light = false }: { light?: boolean }) {
             <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true">
                 <defs>
                     <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stopColor="#38bdf8" />
-                        <stop offset="1" stopColor="#6366f1" />
+                        <stop offset="0" stopColor="#4fd1c5" />
+                        <stop offset="1" stopColor="#319795" />
                     </linearGradient>
                 </defs>
                 <rect width="40" height="40" rx="10" fill="url(#lg)" />
@@ -28,7 +28,7 @@ export function Logo({ light = false }: { light?: boolean }) {
                 </g>
             </svg>
             <span style={{ color: text }}>
-                Smart<b>-X</b>
+                Smart<b style={{ color: light ? "#e6fffa" : undefined }}>-X</b>
             </span>
         </div>
     );
