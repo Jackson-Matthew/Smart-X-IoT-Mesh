@@ -2,6 +2,12 @@
 // Behaves like a fleet of ESP32 nodes: every tick it POSTs a reading for each
 // device to the real telemetry endpoints, so the data enters the API exactly
 // as hardware would send it (queue -> alert rules -> timeline).
+//
+// The greenhouse is modelled so commands have a real effect:
+//   - "Simulate dry soil" makes MOIST-001 start losing moisture.
+//   - While PUMP-001 is ON the moisture climbs, so the alert clears.
+//   - If the pump is switched OFF again (e.g. by Undo) it falls again and
+//     the alert is raised again.
 
 import {
     sendActuatorTelemetry,
@@ -14,13 +20,9 @@ import {
 // dashboard has an offline device to flag.
 const SILENT_DEVICES = new Set(["TEMP-002"]);
 
-// Devices that can be pushed into a fault state from the UI.
 export const SPIKE_DEVICE = "POWER-001";
-export const DRY_DEVICE = "MOIST-001";
-
-type Fault = { ticksLeft: number };
-
-const faults = new Map<string, Fault>();
+export const SENSOR_DEVICE = "MOIST-001";
+export const PUMP_DEVICE = "PUMP-001";
 
 // Last value per device so readings drift smoothly instead of jumping.
 const state = new Map<string, number>();
@@ -40,23 +42,71 @@ const packet = <T,>(deviceIdentifier: string, telemetryType: string, data: T) =>
     data,
 });
 
-// Keeps the fault going for a few ticks (several identical bad packets in a
-// row) which proves the HashSet only raises ONE alert.
-export function injectFault(deviceIdentifier: string, ticks = 3) {
-    faults.set(deviceIdentifier, { ticksLeft: ticks });
+// ---------------------------------------------------------------
+// Greenhouse model
+// ---------------------------------------------------------------
+const NORMAL_MOISTURE = 55;
+const DRY_LIMIT = 20;          // below this the API raises "LowMoisture"
+const RECOVERED_AT = 60;       // dry mode ends once the soil is this wet
+
+let moisture = NORMAL_MOISTURE;
+let drought = false;
+
+// Commanded state of every actuator ("On"/"Off"), kept up to date by the page.
+let actuatorStates: Record<string, string> = {};
+
+export function setActuatorStates(states: Record<string, string>) {
+    actuatorStates = states;
 }
 
-function activeFault(deviceIdentifier: string): boolean {
-    const fault = faults.get(deviceIdentifier);
+function isOn(deviceIdentifier: string): boolean {
+    const key = Object.keys(actuatorStates).find(
+        (k) => k.toLowerCase() === deviceIdentifier.toLowerCase()
+    );
 
-    if (!fault || fault.ticksLeft <= 0) {
-        return false;
+    return key !== undefined && actuatorStates[key].toLowerCase() === "on";
+}
+
+// The soil dries out. Called by the "Simulate dry soil" button.
+export function startDrought() {
+    drought = true;
+    moisture = DRY_LIMIT - 8;
+}
+
+function nextMoisture(): number {
+    if (drought) {
+        // Pump on: +6 per tick. Pump off: the soil keeps drying (-3 per tick).
+        moisture = Math.min(80, Math.max(5, moisture + (isOn(PUMP_DEVICE) ? 6 : -3)));
+
+        if (moisture >= RECOVERED_AT) {
+            drought = false;
+        }
+    } else {
+        moisture = Math.min(70, Math.max(40, moisture + (Math.random() - 0.5) * 4));
     }
 
-    fault.ticksLeft -= 1;
+    return moisture;
+}
+
+// ---------------------------------------------------------------
+// Power spike (several identical bad packets prove the HashSet only
+// raises ONE alert)
+// ---------------------------------------------------------------
+let spikeTicksLeft = 0;
+
+export function injectPowerSpike(ticks = 3) {
+    spikeTicksLeft = ticks;
+}
+
+function spikeActive(): boolean {
+    if (spikeTicksLeft <= 0) return false;
+    spikeTicksLeft -= 1;
     return true;
 }
 
+// ---------------------------------------------------------------
+// Sending
+// ---------------------------------------------------------------
 export async function sendOneReading(sensor: Sensor): Promise<void> {
     const id = sensor.deviceIdentifier;
 
@@ -64,22 +114,20 @@ export async function sendOneReading(sensor: Sensor): Promise<void> {
         return;
     }
 
-    const faulty = activeFault(id);
-
     if (sensor.category === "Environmental") {
-        const moisture = faulty && id === DRY_DEVICE
-            ? 12
+        const wet = id === SENSOR_DEVICE
+            ? nextMoisture()
             : drift(`${id}:h`, 55, 4, 35, 75);
 
         await sendEnvironmentalTelemetry(
             packet(id, "Environmental", {
                 temperature: Number(drift(`${id}:t`, 24, 1, 18, 32).toFixed(1)),
-                humidity: Number(moisture.toFixed(1)),
+                humidity: Number(wet.toFixed(1)),
                 pressure: 1012,
             }) as never
         );
     } else if (sensor.category === "PowerConsumption") {
-        const watts = faulty && id === SPIKE_DEVICE
+        const watts = id === SPIKE_DEVICE && spikeActive()
             ? 3800
             : drift(`${id}:p`, 1100, 150, 700, 1600);
 
@@ -92,10 +140,16 @@ export async function sendOneReading(sensor: Sensor): Promise<void> {
             }) as never
         );
     } else {
+        // Actuators report what they were last commanded to do.
+        const commanded = Object.keys(actuatorStates).some(
+            (k) => k.toLowerCase() === id.toLowerCase()
+        );
+        const running = commanded ? isOn(id) : true;
+
         await sendActuatorTelemetry(
             packet(id, "Actuator", {
-                state: "Running",
-                value: Number(drift(`${id}:a`, 70, 6, 40, 95).toFixed(0)),
+                state: running ? "Running" : "Stopped",
+                value: running ? Number(drift(`${id}:a`, 70, 6, 40, 95).toFixed(0)) : 0,
             }) as never
         );
     }
