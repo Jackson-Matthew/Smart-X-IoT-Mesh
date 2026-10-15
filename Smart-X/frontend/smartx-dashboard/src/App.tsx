@@ -14,7 +14,7 @@ import "./landing.css";
 function App() {
     const [user, setUser] = useState<User | null>(null);
     const [checking, setChecking] = useState(true);
-    const [screen, setScreen] = useState<"landing" | "auth">("landing");
+    const [screen, setScreen] = useState<"landing" | "signin" | "signup">("landing");
 
     useEffect(() => {
         // Fires on page load too, so a refresh keeps the user signed in.
@@ -46,9 +46,15 @@ function App() {
     }
 
     return screen === "landing" ? (
-        <LandingPage onSignIn={() => setScreen("auth")} />
+        <LandingPage
+            onLogin={() => setScreen("signin")}
+            onSignUp={() => setScreen("signup")}
+        />
     ) : (
-        <AuthPage onBack={() => setScreen("landing")} />
+        <AuthPage
+            initialMode={screen}
+            onBack={() => setScreen("landing")}
+        />
     );
 }
 

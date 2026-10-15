@@ -17,8 +17,14 @@ type Mode = "signin" | "signup";
 //   register -> teal banner with a floating card
 // On success Firebase tells App.tsx (watchAuth), which swaps this screen
 // for the dashboard automatically.
-function AuthPage({ onBack }: { onBack: () => void }) {
-    const [mode, setMode] = useState<Mode>("signin");
+function AuthPage({
+    initialMode,
+    onBack,
+}: {
+    initialMode: Mode;
+    onBack: () => void;
+}) {
+    const [mode, setMode] = useState<Mode>(initialMode);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
