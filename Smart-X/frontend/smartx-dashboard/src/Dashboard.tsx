@@ -1,21 +1,49 @@
 import { useEffect, useState } from "react";
 
-import { getHealth, type HealthResponse } from "./services/api";
+import { Icon, type IconName } from "./components/Icons";
+import { Logo } from "./components/Logo";
 import CommandStreamPage from "./pages/CommandStreamPage";
 import IngestionPage from "./pages/IngestionPage";
+import { getHealth, type HealthResponse } from "./services/api";
+import "./purity.css";
 
-// DASHBOARD SHELL (shown only after sign-in): header + navigation for the three architectural pillars.
+// DASHBOARD SHELL (shown only after sign-in), laid out like the Purity UI
+// dashboard: floating sidebar on the left, top bar with breadcrumb on the right.
 //
 // Both active pages stay MOUNTED and are only hidden when you switch tabs
 // (the `hidden` attribute). Because they are never unmounted, their state,
 // timers and simulators survive navigation: nothing reloads or is lost.
 type Pillar = "ingestion" | "command" | "topology";
 
-const PILLARS: { id: Pillar; label: string; enabled: boolean }[] = [
-    { id: "ingestion", label: "Sensor Data Ingestion & Telemetry", enabled: true },
-    { id: "command", label: "Real-Time Command Stream & History", enabled: true },
+const PILLARS: {
+    id: Pillar;
+    label: string;
+    short: string;
+    icon: IconName;
+    enabled: boolean;
+}[] = [
+    {
+        id: "ingestion",
+        label: "Sensor Data Ingestion & Telemetry",
+        short: "Telemetry Ingestion",
+        icon: "devices",
+        enabled: true,
+    },
+    {
+        id: "command",
+        label: "Real-Time Command Stream & History",
+        short: "Command Stream",
+        icon: "bolt",
+        enabled: true,
+    },
     // Final PoE: visible but greyed out and not clickable.
-    { id: "topology", label: "Network Topology & Mesh Routing", enabled: false },
+    {
+        id: "topology",
+        label: "Network Topology & Mesh Routing",
+        short: "Mesh Topology",
+        icon: "mesh",
+        enabled: false,
+    },
 ];
 
 function Dashboard({
@@ -38,56 +66,94 @@ function Dashboard({
         return () => clearInterval(timer);
     }, []);
 
+    const current = PILLARS.find((p) => p.id === active)!;
+
     return (
-        <div className="app">
-            <header className="dashboard-header">
-                <div>
-                    <h1>Smart-X</h1>
-                    <p>IoT Mesh Ecosystem</p>
+        <div className="px-shell">
+            <aside className="px-sidebar">
+                <div className="px-brand">
+                    <Logo />
                 </div>
 
-                <div className="gateway-status">
-                    <span
-                        className={health ? "status-dot online" : "status-dot offline"}
-                    />
-                    <span>
-                        Gateway: <strong>{health ? "Online" : "Offline"}</strong>
-                    </span>
+                <hr className="px-rule" />
 
-                    <span className="user-chip" title={email}>
-                        {email}
+                <p className="px-nav-title">Modules</p>
+
+                <nav className="px-nav">
+                    {PILLARS.map((pillar) => (
+                        <button
+                            key={pillar.id}
+                            type="button"
+                            disabled={!pillar.enabled}
+                            title={pillar.label}
+                            className={
+                                "px-nav-item" +
+                                (active === pillar.id ? " active" : "")
+                            }
+                            onClick={() => pillar.enabled && setActive(pillar.id)}
+                        >
+                            <span className="px-nav-icon">
+                                <Icon name={pillar.icon} />
+                            </span>
+                            <span className="px-nav-label">{pillar.short}</span>
+                            {!pillar.enabled && <span className="px-soon">Final PoE</span>}
+                        </button>
+                    ))}
+                </nav>
+
+                <div className="px-help">
+                    <span className="px-help-icon">
+                        <Icon name="shield" size={20} />
                     </span>
-                    <button type="button" className="signout-btn" onClick={onSignOut}>
+                    <strong>Gateway</strong>
+                    <p>
+                        <span
+                            className={health ? "status-dot online" : "status-dot offline"}
+                        />
+                        {health ? "Online and receiving" : "Offline"}
+                    </p>
+                    <button type="button" onClick={onSignOut}>
                         Sign out
                     </button>
                 </div>
-            </header>
+            </aside>
 
-            <nav className="main-nav">
-                {PILLARS.map((pillar) => (
-                    <button
-                        key={pillar.id}
-                        type="button"
-                        disabled={!pillar.enabled}
-                        className={
-                            "main-nav-item" +
-                            (active === pillar.id ? " active" : "") +
-                            (!pillar.enabled ? " disabled" : "")
-                        }
-                        onClick={() => pillar.enabled && setActive(pillar.id)}
-                    >
-                        {pillar.label}
-                        {!pillar.enabled && <span className="badge">Final PoE</span>}
-                    </button>
-                ))}
-            </nav>
+            <div className="px-main">
+                <header className="px-topbar">
+                    <div>
+                        <p className="px-crumb">
+                            Pages / <b>{current.short}</b>
+                        </p>
+                        <h1>{current.label}</h1>
+                    </div>
 
-            <div hidden={active !== "ingestion"}>
-                <IngestionPage />
-            </div>
+                    <div className="px-top-actions">
+                        <span className="px-status">
+                            <span
+                                className={health ? "status-dot online" : "status-dot offline"}
+                            />
+                            Gateway <strong>{health ? "Online" : "Offline"}</strong>
+                        </span>
 
-            <div hidden={active !== "command"}>
-                <CommandStreamPage />
+                        <span className="px-user" title={email}>
+                            <Icon name="user" size={16} />
+                            <span>{email}</span>
+                        </span>
+
+                        <button type="button" className="px-signout" onClick={onSignOut}>
+                            <Icon name="logout" size={16} />
+                            <span>Sign out</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div hidden={active !== "ingestion"}>
+                    <IngestionPage />
+                </div>
+
+                <div hidden={active !== "command"}>
+                    <CommandStreamPage />
+                </div>
             </div>
         </div>
     );

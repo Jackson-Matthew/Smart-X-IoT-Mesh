@@ -1,0 +1,521 @@
+/* ================================================================
+   PURITY UI THEME
+   Layout and look modelled on the Purity UI Dashboard (Chakra UI):
+   floating white sidebar with teal icon chips, soft-shadow cards,
+   pale grey canvas and a teal accent. Loaded after index.css so it
+   re-skins the existing Part 1 and Part 2 pages through the tokens.
+   ================================================================ */
+
+:root {
+    --px-teal: #4fd1c5;
+    --px-teal-dark: #38b2ac;
+    --px-teal-darker: #319795;
+    --px-ink: #2d3748;
+    --px-gray: #a0aeb8;
+    --px-gray-text: #718096;
+    --px-canvas: #f8f9fa;
+    --px-card-shadow: 0 3.5px 5.5px rgba(0, 0, 0, 0.04);
+    --px-lift-shadow: 0 7px 23px rgba(0, 0, 0, 0.07);
+
+    /* re-map the existing design tokens */
+    --color-bg: var(--px-canvas);
+    --color-surface: #ffffff;
+    --color-surface-alt: #f8f9fa;
+    --color-border: #edf2f7;
+    --color-border-alt: #e2e8f0;
+    --color-text: var(--px-ink);
+    --color-text-muted: var(--px-gray-text);
+    --color-text-strong: var(--px-ink);
+    --color-primary: var(--px-teal-dark);
+    --color-primary-hover: var(--px-teal-darker);
+    --color-primary-soft: rgba(79, 209, 197, 0.16);
+    --radius-lg: 15px;
+    --radius-md: 12px;
+    --radius-sm: 10px;
+    --shadow-sm: var(--px-card-shadow);
+    --shadow-md: var(--px-lift-shadow);
+    --content-max: 100%;
+    --content-pad: 0px;
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--px-canvas);
+}
+
+/* ---------- Shell ---------- */
+.px-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 20px;
+    padding: 20px;
+    align-items: start;
+}
+
+.px-sidebar {
+    position: sticky;
+    top: 20px;
+    height: calc(100vh - 40px);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: var(--px-card-shadow);
+    padding: 24px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.px-brand {
+    display: flex;
+    justify-content: center;
+    padding: 4px 0 12px;
+}
+
+.px-rule {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    margin: 4px 0 18px;
+}
+
+.px-nav-title {
+    margin: 0 0 8px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--px-gray);
+}
+
+.px-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.px-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 15px;
+    background: transparent;
+    color: var(--px-gray-text);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.px-nav-item:hover:not(:disabled) {
+    background: #f8f9fa;
+}
+
+.px-nav-icon {
+    width: 32px;
+    height: 32px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--px-teal-dark);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+}
+
+.px-nav-item.active {
+    background: #fff;
+    color: var(--px-ink);
+    box-shadow: var(--px-lift-shadow);
+}
+
+.px-nav-item.active .px-nav-icon {
+    background: var(--px-teal);
+    color: #fff;
+    box-shadow: none;
+}
+
+.px-nav-item:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.px-nav-item:disabled .px-nav-icon {
+    color: var(--px-gray);
+}
+
+.px-nav-label {
+    flex: 1;
+}
+
+.px-soon {
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #edf2f7;
+    color: var(--px-gray-text);
+}
+
+/* "Need help?" style card pinned to the bottom of the sidebar */
+.px-help {
+    margin-top: auto;
+    padding: 18px;
+    border-radius: 15px;
+    color: #fff;
+    background: linear-gradient(135deg, #4fd1c5 0%, #319795 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.px-help-icon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    color: var(--px-teal-dark);
+    border-radius: 12px;
+    margin-bottom: 4px;
+}
+
+.px-help p {
+    margin: 0;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.95;
+}
+
+.px-help button {
+    margin-top: 8px;
+    border: 0;
+    border-radius: 10px;
+    padding: 9px;
+    background: #fff;
+    color: var(--px-ink);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+/* ---------- Main + top bar ---------- */
+.px-main {
+    min-width: 0;
+}
+
+.px-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 4px 18px;
+}
+
+.px-crumb {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--px-gray);
+}
+
+.px-crumb b {
+    color: var(--px-ink);
+}
+
+.px-topbar h1 {
+    margin: 2px 0 0;
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    color: var(--px-ink);
+}
+
+.px-top-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: var(--px-card-shadow);
+}
+
+.px-status,
+.px-user,
+.px-signout {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--px-gray-text);
+}
+
+.px-user span {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.px-signout {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--px-ink);
+}
+
+.px-signout:hover {
+    color: #e53e3e;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background: #48bb78;
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.25);
+}
+
+.status-dot.offline {
+    background: #e53e3e;
+}
+
+/* ---------- Page content inside the shell ---------- */
+.px-main .dashboard {
+    padding: 0 0 40px;
+    gap: 20px;
+    max-width: none;
+}
+
+.px-main .error-banner {
+    margin: 0 0 16px;
+}
+
+.section-heading h2,
+.px-main h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--px-ink);
+}
+
+.px-main h3 {
+    color: var(--px-ink);
+}
+
+/* every card-like block: white, 15px radius, whisper shadow */
+.overview-card,
+.sensor-card,
+.telemetry-panel,
+.registration-form,
+.media-panel,
+.issue-form,
+.issue-card,
+.telemetry-card,
+.simulator-info,
+.current-reading,
+.reading-card,
+.telemetry-chart,
+.cs-panel,
+.cs-stat {
+    border: 0;
+    border-radius: 15px;
+    box-shadow: var(--px-card-shadow);
+}
+
+.registration-section,
+.simulator-section,
+.telemetry-section,
+.issue-report-section,
+.issues-section {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: var(--px-card-shadow);
+    padding: 22px;
+}
+
+/* Mini statistics cards: label + value on the left, teal icon tile right */
+.overview-card,
+.cs-stat {
+    position: relative;
+    padding: 18px 76px 18px 22px;
+    background: #fff;
+}
+
+.overview-card span,
+.cs-stat > span:first-child {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--px-gray);
+}
+
+.overview-card strong,
+.cs-stat strong {
+    font-size: 1.45rem;
+    color: var(--px-ink);
+}
+
+.overview-card::after {
+    content: "";
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translateY(-50%);
+    border-radius: 12px;
+    background: var(--px-teal)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h4l3-8 4 16 3-8h4'/%3E%3C/svg%3E")
+        center / 22px no-repeat;
+}
+
+.cs-stat {
+    flex-direction: column;
+}
+
+.cs-stat-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--px-teal);
+    color: #fff;
+}
+
+.cs-stat.warn .cs-stat-icon {
+    background: #ed8936;
+}
+
+.cs-stat.danger .cs-stat-icon {
+    background: #e53e3e;
+}
+
+/* ---------- Buttons ---------- */
+.cs-suggestion button,
+.cs-buttons button,
+.import-row button {
+    background: var(--px-teal);
+    color: #fff;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.cs-suggestion button:hover,
+.cs-buttons button:hover:not(:disabled),
+.import-row button:hover:not(:disabled) {
+    background: var(--px-teal-dark);
+}
+
+.cs-buttons .cs-undo {
+    background: var(--px-ink);
+}
+
+.cs-buttons .cs-danger {
+    background: #e53e3e;
+}
+
+/* ---------- Command stream tweaks ---------- */
+.cs-suggest {
+    border: 0;
+    background: linear-gradient(135deg, #ffffff 60%, rgba(79, 209, 197, 0.14));
+}
+
+.cs-device {
+    border: 0;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: var(--px-card-shadow);
+}
+
+.cs-device:hover {
+    box-shadow: var(--px-lift-shadow);
+}
+
+.cs-device.selected {
+    background: #fff;
+    box-shadow: 0 0 0 2px var(--px-teal), var(--px-lift-shadow);
+}
+
+.cs-list li {
+    background: #f8f9fa;
+    border: 0;
+    border-radius: 12px;
+}
+
+.cs-bar div {
+    background: var(--px-teal);
+}
+
+.cs-filters input,
+.cs-filters select {
+    border-radius: 12px;
+    background: #fff;
+}
+
+.cs-filters input:focus,
+.cs-filters select:focus {
+    outline: 2px solid var(--px-teal);
+}
+
+.cs-message {
+    border-radius: 12px;
+    background: rgba(79, 209, 197, 0.14);
+    border: 0;
+    color: var(--px-ink);
+}
+
+/* ---------- Responsive: sidebar becomes a top strip ---------- */
+@media (max-width: 960px) {
+    .px-shell {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+
+    .px-sidebar {
+        position: static;
+        height: auto;
+        padding: 14px;
+    }
+
+    .px-rule,
+    .px-nav-title,
+    .px-help {
+        display: none;
+    }
+
+    .px-brand {
+        justify-content: flex-start;
+    }
+
+    .px-nav {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .px-nav-item {
+        width: auto;
+        flex: none;
+    }
+}
