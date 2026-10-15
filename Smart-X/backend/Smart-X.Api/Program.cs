@@ -47,7 +47,9 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<AlertService>();
             builder.Services.AddSingleton<CommandService>();
             builder.Services.AddSingleton<DeviceImportService>();
+            builder.Services.AddSingleton<ProcessingLog>();
             builder.Services.AddHostedService<DisconnectMonitor>();
+            builder.Services.AddHostedService<TelemetryProcessor>();
 
             builder.Services.AddSingleton<SensorService>();
             builder.Services.AddSingleton<ValidationService>();

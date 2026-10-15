@@ -15,18 +15,15 @@ namespace Smart_X.Api.Services
         private readonly DeviceRegistry _registry;
         private readonly DisconnectedNodes _disconnectedNodes;
         private readonly CriticalAlertQueue _criticalAlerts;
-        private readonly AlertService _alertService;
 
         public DisconnectMonitor(
             DeviceRegistry registry,
             DisconnectedNodes disconnectedNodes,
-            CriticalAlertQueue criticalAlerts,
-            AlertService alertService)
+            CriticalAlertQueue criticalAlerts)
         {
             _registry = registry;
             _disconnectedNodes = disconnectedNodes;
             _criticalAlerts = criticalAlerts;
-            _alertService = alertService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -67,10 +64,8 @@ namespace Smart_X.Api.Services
                     Message = $"No telemetry for over {SilenceLimit.TotalSeconds:0} seconds."
                 });
 
-                while (_criticalAlerts.TryDequeue(out var alert))
-                {
-                    _alertService.Add(alert!);
-                }
+                // The background TelemetryProcessor picks the alert up from
+                // the priority queue on its next tick.
             }
         }
     }

@@ -25,6 +25,7 @@ namespace Smart_X.Api.Services
         private readonly SensorTimeline _timeline;
         private readonly DisconnectedNodes _disconnectedNodes;
         private readonly AlertService _alertService;
+        private readonly ProcessingLog _processingLog;
 
         // Only one thread drains the queues at a time, so FIFO order is kept
         // even when many devices POST at once.
@@ -38,8 +39,10 @@ namespace Smart_X.Api.Services
             CriticalAlertQueue criticalAlerts,
             SensorTimeline timeline,
             DisconnectedNodes disconnectedNodes,
-            AlertService alertService)
+            AlertService alertService,
+            ProcessingLog processingLog)
         {
+            _processingLog = processingLog;
             _telemetryRepository = telemetryRepository;
             _sensorService = sensorService;
             _telemetryHistory = telemetryHistory;
@@ -123,27 +126,46 @@ namespace Smart_X.Api.Services
                 else if (_disconnectedNodes.TryRaiseAlert(
                     packet.DeviceIdentifier, alertType))
                 {
+                    // Remember how long the line was when this alert arrived,
+                    // to show later how far it jumped the queue.
+                    alert.QueuedAt = DateTime.UtcNow;
+                    alert.BacklogAtArrival = _telemetryQueue.Count;
                     _criticalAlerts.Enqueue(alert);
                 }
             }
 
-            await DrainQueuesAsync();
+            // The packet is now only QUEUED. The background TelemetryProcessor
+            // works the queues (see ProcessPendingAsync).
+            await Task.CompletedTask;
         }
 
+        // Called by the background worker every 100 ms.
         // Critical alerts are processed FIRST, ahead of any waiting telemetry.
-        // Then the normal queue is emptied oldest-first (FIFO).
-        private async Task DrainQueuesAsync()
+        // Then a limited batch of the normal queue is processed oldest-first (FIFO).
+        public async Task<DrainResult> ProcessPendingAsync(int maxTelemetry)
         {
             var toStore = new List<ITelemetryPacket>();
+            var alerts = 0;
+            int remaining;
 
             lock (_drainLock)
             {
                 while (_criticalAlerts.TryDequeue(out var alert))
                 {
+                    alerts++;
                     _alertService.Add(alert!);
+
+                    var waitedMs = (DateTime.UtcNow - alert!.QueuedAt).TotalMilliseconds;
+
+                    _processingLog.Add(
+                        "Critical alert",
+                        $"{alert.AlertType} on {alert.DeviceIdentifier} processed FIRST. " +
+                        $"{alert.BacklogAtArrival} readings were already waiting; " +
+                        $"it waited {waitedMs:0} ms.");
                 }
 
-                while (_telemetryQueue.TryDequeue(out var queued))
+                while (toStore.Count < maxTelemetry &&
+                       _telemetryQueue.TryDequeue(out var queued))
                 {
                     toStore.Add(queued!);
 
@@ -152,6 +174,18 @@ namespace Smart_X.Api.Services
                     _telemetryHistory.AddReading(
                         ExtractTelemetryValues(queued!));
                 }
+
+                remaining = _telemetryQueue.Count;
+
+                // Only log batches while there is a backlog, otherwise the
+                // log would fill with routine traffic.
+                if (toStore.Count > 0 && remaining > 0)
+                {
+                    _processingLog.Add(
+                        "Telemetry batch",
+                        $"Processed {toStore.Count} readings in order (FIFO). " +
+                        $"{remaining} still waiting.");
+                }
             }
 
             // keep the whole packet so the dashboard can chart it.
@@ -159,6 +193,8 @@ namespace Smart_X.Api.Services
             {
                 await _telemetryRepository.AddAsync(packet);
             }
+
+            return new DrainResult(alerts, toStore.Count, remaining);
         }
 
         // typeof(T) tells us, at runtime, which telemetry class T was filled with.
