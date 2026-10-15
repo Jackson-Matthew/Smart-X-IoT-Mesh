@@ -14,11 +14,18 @@ namespace Smart_X.Api.Services
         // Packets are appended in the order they arrive (oldest first).
         private readonly List<ITelemetryPacket> _telemetry = [];
 
+        // The background processor writes while API requests read, and a
+        // List is not safe for that, so every access takes this lock.
+        private readonly object _lock = new();
+
         public Task AddAsync(ITelemetryPacket packet)
         {
             ArgumentNullException.ThrowIfNull(packet);
 
-            _telemetry.Add(packet);
+            lock (_lock)
+            {
+                _telemetry.Add(packet);
+            }
 
             return Task.CompletedTask;
         }
@@ -29,13 +36,18 @@ namespace Smart_X.Api.Services
             ArgumentException.ThrowIfNullOrWhiteSpace(deviceIdentifier);
 
             // LINQ filter: keep only packets from the requested device.
-            var results = _telemetry
-                .Where(packet =>
-                    string.Equals(
-                        packet.DeviceIdentifier,
-                        deviceIdentifier,
-                        StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            List<ITelemetryPacket> results;
+
+            lock (_lock)
+            {
+                results = _telemetry
+                    .Where(packet =>
+                        string.Equals(
+                            packet.DeviceIdentifier,
+                            deviceIdentifier,
+                            StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
 
             return Task.FromResult<IEnumerable<ITelemetryPacket>>(
                 results);
