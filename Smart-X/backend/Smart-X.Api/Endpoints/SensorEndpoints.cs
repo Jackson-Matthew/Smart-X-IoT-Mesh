@@ -63,5 +63,26 @@ public static class SensorEndpoints
                 ? Results.NotFound()
                 : Results.Ok(sensor);
         });
+
+        // GET /api/sensors/by-mac/AA:BB:CC:DD:EE:03 - O(1) lookup using the
+        // Dictionary in DeviceRegistry (no looping through a list).
+        group.MapGet("/by-mac/{mac}", (string mac, SensorService service) =>
+        {
+            var sensor = service.GetSensorByMac(mac);
+
+            return sensor is null
+                ? Results.NotFound(new { error = $"No device with MAC address '{mac}'." })
+                : Results.Ok(sensor);
+        });
+
+        // GET /api/sensors/by-node/POWER-001 - the same instant lookup by node ID.
+        group.MapGet("/by-node/{nodeId}", (string nodeId, SensorService service) =>
+        {
+            var sensor = service.GetSensorByDeviceIdentifier(nodeId);
+
+            return sensor is null
+                ? Results.NotFound(new { error = $"No device with ID '{nodeId}'." })
+                : Results.Ok(sensor);
+        });
     }
 }
