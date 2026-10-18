@@ -249,6 +249,10 @@ Invoke-RestMethod "$api/api/alerts/status"   # activeAlertKeys contains POWER-00
      The spike was sent **last** but was processed **before** the readings still
      waiting. That is the priority queue bypassing the normal queue.
 
+> Run this one from the dashboard button. The button fires the 150 readings
+> **concurrently**, like many devices reporting at once. Sending them one at a time
+> from a script is slower than the 50-per-second processing rate, so no backlog builds.
+
 ### 6.3 HashSet: no duplicate alerts
 
 1. Press **⚡ Simulate power spike**. This sends **three identical bad packets** in a row.
@@ -260,8 +264,12 @@ API version (send the same spike three times):
 ```powershell
 1..3 | % { Invoke-RestMethod "$api/api/Telemetry/power" -Method Post -ContentType "application/json" -Body $spike | Out-Null }
 Start-Sleep 1
-(Invoke-RestMethod "$api/api/alerts" | ? { $_.alertType -eq "PowerSpike" }).Count   # 1
+$alerts = Invoke-RestMethod "$api/api/alerts"
+@($alerts | ? { $_.alertType -eq "PowerSpike" }).Count   # 1, not 3
 ```
+
+(Assign the result to a variable *before* filtering: PowerShell 5.1 hands a JSON
+array to the pipeline as a single object otherwise.)
 
 Once a **healthy** reading arrives the active flag is cleared, so the same alert
 can fire again for a later, separate incident. The **disconnected nodes** set works
