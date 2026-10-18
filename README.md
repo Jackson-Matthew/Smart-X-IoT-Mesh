@@ -2,6 +2,10 @@
 
 **PROG7312 PoE, Part 2: Real-Time Processing and Device Management**
 
+# Video Demo Link
+https://youtu.be/pSdtSUoccQw
+#
+
 Smart-X is an operations console for IoT devices (ESP32 sensors, power meters,
 pumps). Devices send telemetry to a **.NET 10 Web API**; a **React + TypeScript**
 dashboard shows live readings, raises critical alerts, lets an operator send
