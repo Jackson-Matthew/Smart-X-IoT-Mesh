@@ -43,6 +43,11 @@ namespace Smart_X.Api
             builder.Services.AddSingleton<CommandUndoStack>();
             builder.Services.AddSingleton<SensorTimeline>();
             builder.Services.AddSingleton<DisconnectedNodes>();
+
+            // Part 3: AVL tree history index, mesh graph and its seed data.
+            builder.Services.AddSingleton<TelemetryHistoryIndex>();
+            builder.Services.AddSingleton<MeshTopologyService>();
+            builder.Services.AddSingleton<MeshSeedService>();
             builder.Services.AddSingleton<PredictionEngine>();
             builder.Services.AddSingleton<AlertService>();
             builder.Services.AddSingleton<CommandService>();
@@ -86,6 +91,11 @@ namespace Smart_X.Api
                     .GetRequiredService<SeedDataService>();
 
                 seedDataService.SeedAsync().GetAwaiter().GetResult();
+
+                // Part 3: extra mesh sensors, links and 24h of AVL-indexed history.
+                scope.ServiceProvider
+                    .GetRequiredService<MeshSeedService>()
+                    .Seed();
 
                 // Give the predictive engine some past operator behaviour to learn from.
                 scope.ServiceProvider

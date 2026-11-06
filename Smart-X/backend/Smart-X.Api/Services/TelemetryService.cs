@@ -23,6 +23,7 @@ namespace Smart_X.Api.Services
         private readonly TelemetryQueue _telemetryQueue;
         private readonly CriticalAlertQueue _criticalAlerts;
         private readonly SensorTimeline _timeline;
+        private readonly TelemetryHistoryIndex _historyIndex;
         private readonly DisconnectedNodes _disconnectedNodes;
         private readonly AlertService _alertService;
         private readonly ProcessingLog _processingLog;
@@ -38,6 +39,7 @@ namespace Smart_X.Api.Services
             TelemetryQueue telemetryQueue,
             CriticalAlertQueue criticalAlerts,
             SensorTimeline timeline,
+            TelemetryHistoryIndex historyIndex,
             DisconnectedNodes disconnectedNodes,
             AlertService alertService,
             ProcessingLog processingLog)
@@ -49,6 +51,7 @@ namespace Smart_X.Api.Services
             _telemetryQueue = telemetryQueue;
             _criticalAlerts = criticalAlerts;
             _timeline = timeline;
+            _historyIndex = historyIndex;
             _disconnectedNodes = disconnectedNodes;
             _alertService = alertService;
         }
@@ -171,6 +174,7 @@ namespace Smart_X.Api.Services
 
                     // sorted timeline + jagged-array history.
                     _timeline.Add(queued!);
+                    _historyIndex.Add(queued!);
                     _telemetryHistory.AddReading(
                         ExtractTelemetryValues(queued!));
                 }
