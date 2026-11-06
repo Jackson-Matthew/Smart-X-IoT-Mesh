@@ -1,6 +1,6 @@
 # Smart-X: IoT Mesh Ecosystem
 
-**PROG7312 PoE, Part 2: Real-Time Processing and Device Management**
+**PROG7312 PoE, Part 3: Network Topology and Mesh Routing (final submission, includes Parts 1 and 2)**
 
 # Video Demo Link
 https://youtu.be/pSdtSUoccQw
@@ -10,7 +10,10 @@ Smart-X is an operations console for IoT devices (ESP32 sensors, power meters,
 pumps). Devices send telemetry to a **.NET 10 Web API**; a **React + TypeScript**
 dashboard shows live readings, raises critical alerts, lets an operator send
 override commands (with undo), and **suggests the next action** based on what
-the operator did in the past.
+the operator did in the past. The final module models the **IoT mesh network**:
+a graph of nodes you can trace by ID or MAC address, BFS/DFS connectivity checks
+with failover hints, a **minimum spanning tree** for power-efficient routing, and
+an **AVL tree** for fast time-range queries on sensor history.
 
 | Layer | Technology |
 |---|---|
@@ -35,6 +38,7 @@ the operator did in the past.
 10. [Alert thresholds and seeded demo data](#10-alert-thresholds-and-seeded-demo-data)
 11. [Troubleshooting](#11-troubleshooting)
 12. [Part 1 features (still included)](#12-part-1-features-still-included)
+13. [Part 3: Network Topology and Mesh Routing](#13-part-3-network-topology-and-mesh-routing)
 
 ---
 
@@ -124,10 +128,10 @@ After signing in the sidebar shows the three modules:
 | Module | Status |
 |---|---|
 | **Sensor Data Ingestion & Telemetry** | Part 1 (included and working) |
-| **Real-Time Command Stream & History** | **Part 2 (this submission)** |
-| **Network Topology & Mesh Routing** | Visible but greyed out (final PoE) |
+| **Real-Time Command Stream & History** | Part 2 (included and working) |
+| **Network Topology & Mesh Routing** | **Part 3 (this submission, see [section 13](#13-part-3-network-topology-and-mesh-routing))** |
 
-Both active pages stay mounted when you switch tabs, so **no state, chart,
+All three pages stay mounted when you switch tabs, so **no state, chart,
 timer or simulator is lost** when moving between modules.
 
 ### The Command Stream page
@@ -172,7 +176,8 @@ Smart-X/
 ├── sample-data/devices.txt     Example file for the device import
 ├── backend/Smart-X.Api/
 │   ├── DataStructures/         TelemetryQueue, CriticalAlertQueue, CommandUndoStack,
-│   │                           DeviceRegistry, SensorTimeline, DisconnectedNodes
+│   │                           DeviceRegistry, SensorTimeline, DisconnectedNodes,
+│   │                           AvlTree, MinHeap, MeshGraph, TelemetryHistoryIndex (Part 3)
 │   ├── Services/               TelemetryService, TelemetryProcessor, AlertRules,
 │   │                           AlertService, CommandService, PredictionEngine,
 │   │                           DisconnectMonitor, DeviceImportService, ProcessingLog ...
@@ -413,6 +418,8 @@ An example is provided in `Smart-X/sample-data/devices.txt` (6 valid devices and
 | `GET /api/insights` | Suggested actions, insights and learned patterns |
 | `POST /api/insights/search` | Record a search for the engine `{query}` |
 
+Part 3 mesh endpoints are listed in [section 13.7](#137-part-3-api).
+
 Part 1 endpoints (media upload, issues, history, deployment validation,
 aggregation) are unchanged. See Swagger for the full list.
 
@@ -440,6 +447,9 @@ Seeded devices on start-up:
 | PUMP-001 | AA:BB:CC:DD:EE:06 | Actuator | Greenhouse 1 - Pump A |
 
 `TEMP-002` never reports, so the dashboard always has an offline device to flag.
+Part 3 adds seven more sensors (`TEMP-003`, `TEMP-004`, `MOIST-002`, `MOIST-003`,
+`POWER-002`, `ACT-002`, `PUMP-002`, MACs `AA:BB:CC:DD:EE:07` to `0D`); see
+[section 13.2](#132-the-mesh-that-is-modelled).
 Data is held **in memory**, so restarting the API resets it.
 
 ---
@@ -471,3 +481,254 @@ Data is held **in memory**, so restarting the API resets it.
 ---
 
 *Demo video:* **(add the YouTube link here before submitting)**
+
+## 13. Part 3: Network Topology and Mesh Routing
+
+The third module turns the sensor list into a **mesh network model**. In a mesh,
+every ESP32 node can reach several neighbours, so a packet can hop from sensor to
+sensor until it reaches the gateway, and the network **heals itself** when a node
+dies. Zigbee, Thread and Espressif's ESP-NOW / ESP-MESH work this way. Part 3
+models it with three data structures: an **AVL tree** (history), a **graph**
+(topology and traversal) and a **heap-driven Prim's algorithm** (cheapest routing
+tree).
+
+### 13.1 Using the Network Topology page
+
+Open the **Mesh Topology** tab in the sidebar. Everything is seeded, so it works
+immediately (no simulator needs to be running).
+
+| Section | What you can do |
+|---|---|
+| **Summary cards** | Connected / down / isolated node counts, total MST power cost (and how much less than keeping every link awake), and how many readings sit in the AVL trees |
+| **Mesh network map** | Click any node. Teal links = minimum spanning tree, grey = spare links, dashed red = links to a dead node, orange = the route you are tracking. Numbers on links are the power cost in mW |
+| **Route tracker** | Type a node ID **or a MAC address** (e.g. `AA:BB:CC:DD:EE:0D`) to see the hop-by-hop path to the gateway and its power cost. For a dead node it lists where to hop instead |
+| **Simulate failure** | Takes the tracked node down. The map, counts and routes recompute at once |
+| **Connectivity and self-healing** | Switch between **BFS** and **DFS** from the gateway. Lists connected devices, down nodes with their "hop via" options, isolated nodes, and every route that had to change (old path struck through, new path beside it) |
+| **Historical telemetry log** | Pick a node and a time window (or Last hour / 2 hours / 6 hours / 24 hours) to run an AVL range query. Shows a chart, a table of readings and the query statistics |
+
+**Suggested demo (about 2 minutes)**
+
+1. Open Mesh Topology. `TEMP-002` is already red (it has been silent since seeding)
+   and the "Down nodes" panel shows it can hop via `TEMP-003`, `MOIST-001` or `TEMP-001`.
+2. Search `AA:BB:CC:DD:EE:0D`. The orange path shows `PUMP-002` reaching the gateway
+   in 7 hops for 77 mW.
+3. Click **Simulate failure of this node** on a relay such as `ACT-001` (the busiest hub).
+   The "Routes that had to change" table fills with new paths, and the MST cost rises.
+4. Choose a node in the history log, click **Last 6 hours**, and compare
+   "tree nodes visited" with "a scan checks N".
+5. Click **Restore** to bring the node back.
+
+### 13.2 The mesh that is modelled
+
+13 sensors plus the gateway `GATEWAY-01`, joined by 25 wireless links. The six
+Part 1/2 sensors are in the mesh together with seven new Part 3 sensors
+(`TEMP-003`, `TEMP-004`, `MOIST-002`, `MOIST-003`, `POWER-002`, `ACT-002`,
+`PUMP-002`, MACs `AA:BB:CC:DD:EE:07` to `0D`). Each link has a **power cost in mW**
+(the transmit energy for one hop; longer or noisier links cost more). Each node
+also gets 24 hours of seeded history at one reading every 2 minutes (about 9,400
+readings in total), written straight into the AVL trees. Readings that arrive
+through the ingestion API are added to the same trees.
+
+The mesh health is its own state: a node is **down** when it is in the mesh's
+failure set. `TEMP-002` starts down (it never reports, matching Parts 1 and 2) and
+you can fail or restore any other node from the page. This is deliberate. The Part 2
+`DisconnectMonitor` flags every device that is silent for 60 seconds, which would
+turn the whole demo mesh red whenever the Part 1 simulator is not running.
+
+### 13.3 Data structure 1: AVL tree (historical queries)
+
+**File:** `DataStructures/AvlTree.cs`, used by `TelemetryHistoryIndex.cs`.
+
+Each node keeps its own `AvlTree<DateTime, ITelemetryPacket>`, keyed on the reading
+timestamp. An AVL tree is a binary search tree that rebalances itself with
+rotations whenever the heights of a node's two subtrees differ by more than 1.
+
+*Why an AVL tree and not a plain BST or a list?* Telemetry arrives in time order.
+Inserting sorted keys into an ordinary BST produces a chain (height n), and every
+query becomes O(n), the same as scanning a list. The AVL rotations keep the height
+at about log2(n). In the seeded data the trees hold 721 readings per node and have
+height 10, where a degenerate BST would have height 721.
+
+```csharp
+// After every insert: recompute height, check the balance factor, rotate.
+private Node Rebalance(Node node)
+{
+    UpdateHeight(node);
+    int balance = BalanceFactor(node);          // left height - right height
+
+    if (balance > 1)                            // left heavy
+    {
+        if (BalanceFactor(node.Left!) < 0)      // left-right case
+            node.Left = RotateLeft(node.Left!);
+        return RotateRight(node);
+    }
+    if (balance < -1)                           // right heavy
+    {
+        if (BalanceFactor(node.Right!) > 0)     // right-left case
+            node.Right = RotateRight(node.Right!);
+        return RotateLeft(node);
+    }
+    return node;
+}
+```
+
+**The range query** ("all moisture readings between 14:00 and 16:00 for Node A")
+is an in-order walk that **skips whole branches** that cannot contain a match:
+
+```csharp
+counter.Visited++;
+if (from.CompareTo(node.Key) < 0)                       // can the left side hold matches?
+    CollectRange(node.Left, from, to, output, counter);
+
+if (from.CompareTo(node.Key) <= 0 && to.CompareTo(node.Key) >= 0)
+    output.Add(new(node.Key, node.Value));               // this node is in range
+
+if (to.CompareTo(node.Key) > 0)                         // can the right side hold matches?
+    CollectRange(node.Right, from, to, output, counter);
+```
+
+| Operation | AVL tree | Unsorted list |
+|---|---|---|
+| Insert a reading | O(log n) | O(1) |
+| Find one reading | O(log n) | O(n) |
+| Range query returning k readings | **O(log n + k)** | O(n) |
+| Latest reading (rightmost node) | O(log n) | O(n) |
+
+The page proves this with real numbers. For a 2-hour window on a node with 732
+readings the query returns 60 readings after visiting **69 tree nodes** instead of
+checking 732, and ran in about 6.6 µs against 42 µs for the linear scan (averaged
+over repeated runs after a warm-up so JIT start-up cost does not distort it). The
+gap grows with history size: the scan is linear, the tree is logarithmic.
+
+### 13.4 Data structure 2: Graph, BFS and DFS (topology and failover)
+
+**File:** `DataStructures/MeshGraph.cs`, orchestrated by `Services/MeshTopologyService.cs`.
+
+The network is an **undirected weighted graph** stored as an **adjacency list**
+(`Dictionary<string, List<MeshEdge>>`): vertices are the ESP32 nodes and the
+gateway, edges are wireless links weighted by power cost. A mesh is *sparse*
+(each node only hears a few neighbours), so an adjacency list uses O(V + E) memory,
+whereas an adjacency matrix would waste O(V²).
+
+**Breadth-first search** (FIFO queue) starts at the gateway and visits every node
+that is still connected, giving each its fewest-hop distance. Down nodes are
+skipped, so **anything BFS cannot reach is down or cut off**:
+
+```csharp
+var queue = new Queue<TraversalStep>();
+queue.Enqueue(new TraversalStep(start, null, 0));
+while (queue.Count > 0)
+{
+    var current = queue.Dequeue();
+    order.Add(current);
+    foreach (var link in LinksOf(current.Node))
+    {
+        string next = link.Other(current.Node);
+        if (isUp(next) && seen.Add(next))                // skip dead and already-seen nodes
+            queue.Enqueue(new TraversalStep(next, current.Node, current.Hops + 1));
+    }
+}
+```
+
+**Depth-first search** (stack) finds the same connected set in a different order
+and is selectable on the page. Both run in O(V + E).
+
+**"Which devices are down, and where do I hop?"** For every down node,
+`HopOptionsAround` returns its *up* neighbours that are still reachable from the
+gateway, cheapest link first. `Failover()` then compares the routes of the healthy
+network with the routes of the damaged one and reports every node whose path used a
+dead node: its old path, and the new path (or **Isolated** if no path is left).
+
+### 13.5 Data structure 3: Min-heap and Prim's MST (power-efficient routing)
+
+**Files:** `DataStructures/MinHeap.cs`, `MeshGraph.PrimMst`.
+
+A **minimum spanning tree** connects every reachable node using the cheapest set of
+links with no loops (V - 1 links). Telemetry flows up the tree (child to parent) to
+the gateway. Keeping only the MST links awake and letting the spare links sleep is
+how the mesh saves power. With the seeded network the MST uses **12 links for
+127 mW**, 53% less than keeping all 22 working links on (272 mW).
+
+**Prim's algorithm** grows the tree from the gateway, always attaching the cheapest
+link that reaches a new node. The **binary min-heap** (a complete tree stored in a
+`List`, parent at `(i-1)/2`, children at `2i+1` and `2i+2`) hands back that cheapest
+link in O(log n) instead of scanning every candidate:
+
+```csharp
+heap.Push((link, node), link.PowerCost);        // sift up    O(log n)
+...
+var (item, cost) = heap.Pop();                  // cheapest link, sift down  O(log n)
+string newNode = item.Edge.Other(item.Via);
+if (!inTree.Add(newNode)) continue;             // already reached by a cheaper link
+edges.Add(item.Edge);
+parent[newNode] = item.Via;                     // the route: child -> parent -> ... -> gateway
+```
+
+Total cost is **O(E log V)**. After a failure Prim simply runs again on the graph
+without the dead node, which is the "self-healing": the new tree and every new
+route come out of the same algorithm. A route is read off by following `parent`
+pointers from the node up to the gateway.
+
+*Honest note on what an MST optimises:* it minimises the **total** power of the
+network, not each node's individual path. A single node's MST path can be longer
+than its fewest-hops path, and the tracker shows the MST path because that is the
+set of links the network keeps awake. (The page's header cards show the network-wide
+saving.)
+
+### 13.6 How the three structures work together
+
+| Question the operator asks | Structure | Cost |
+|---|---|---|
+| Show me node X's readings between two times | AVL tree range query | O(log n + k) |
+| Which devices are still connected? | Graph + BFS/DFS from the gateway | O(V + E) |
+| Which are down, and where do their neighbours hop? | Graph + BFS (reachable set) + neighbour lookup | O(V + E) |
+| What is the cheapest way to route everything to the gateway? | Graph + min-heap + Prim | O(E log V) |
+| Find a node by MAC address | `DeviceRegistry` dictionary (Part 2) | O(1) |
+
+### 13.7 Part 3 API
+
+| Method and route | Purpose |
+|---|---|
+| `GET /api/mesh/topology` | Nodes (status, hops, position), links (active, in-MST) and summary numbers |
+| `POST /api/mesh/nodes/{id}/status` | Body `{"down": true}`: simulate a failure or recovery |
+| `GET /api/mesh/traverse?mode=bfs` or `dfs` | Visit order, down nodes with hop-via options, isolated nodes, changed routes |
+| `GET /api/mesh/mst` | Prim's tree: links, total cost, heap pushes and pops |
+| `GET /api/mesh/route/{idOrMac}` | Route to the gateway for a node ID or MAC address |
+| `GET /api/mesh/history/{idOrMac}?from=&to=&limit=` | AVL range query (UTC ISO timestamps) plus nodes visited, height, rotations and timing |
+
+Try them in PowerShell:
+
+```powershell
+$api = "http://localhost:5217"          # use http://localhost:8080 under Docker
+Invoke-RestMethod "$api/api/mesh/topology"
+Invoke-RestMethod "$api/api/mesh/route/AA:BB:CC:DD:EE:0D"
+Invoke-RestMethod "$api/api/mesh/traverse?mode=dfs"
+Invoke-RestMethod "$api/api/mesh/nodes/ACT-001/status" -Method Post `
+    -ContentType "application/json" -Body '{"down":true}'
+$from = (Get-Date).ToUniversalTime().AddHours(-3).ToString("o")
+$to   = (Get-Date).ToUniversalTime().AddHours(-1).ToString("o")
+Invoke-RestMethod "$api/api/mesh/history/MOIST-002?from=$from&to=$to&limit=5"
+```
+
+### 13.8 Part 3 files
+
+```
+backend/Smart-X.Api/
+├── DataStructures/AvlTree.cs               Generic self-balancing tree with Range()
+├── DataStructures/TelemetryHistoryIndex.cs One AVL tree per device + query metrics
+├── DataStructures/MinHeap.cs               Binary min-heap
+├── DataStructures/MeshGraph.cs             Adjacency-list graph, BFS, DFS, Prim's MST
+├── Services/MeshTopologyService.cs         Node status, routes, failover, hop-via
+├── Services/MeshSeedService.cs             Extra sensors, links, 24h of history
+└── Controllers/MeshController.cs           /api/mesh/*
+frontend/smartx-dashboard/src/
+├── pages/MeshTopologyPage.tsx              The Network Topology dashboard view
+├── services/meshApi.ts                     API calls for /api/mesh
+└── mesh.css                                Page styles
+```
+
+Limitations: mesh links are defined in the seed data (a sensor registered later
+through Part 1 is not wired into the mesh), and, like everything else, mesh state
+and history are in memory and reset when the API restarts.
+
+---
