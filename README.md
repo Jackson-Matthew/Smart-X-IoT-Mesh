@@ -727,6 +727,24 @@ frontend/smartx-dashboard/src/
 └── mesh.css                                Page styles
 ```
 
+### 13.9 Automated tests
+
+17 xUnit tests cover the AVL tree (balance, range bounds, nodes visited), the
+min-heap, BFS/DFS and Prim's MST (including re-routing around a failed node):
+
+```bash
+cd Smart-X/backend
+dotnet test Smart-X.Api.Tests
+```
+
+### 13.10 Submission files
+
+| Item | File |
+|---|---|
+| Report (PDF): completion report and technology recommendations | `docs/Smart-X-Part3-Report.pdf` (source `.html` alongside) |
+| Implementation report: data structure explanations | this README, sections 13.3 to 13.6 |
+| Updates made from lecturer feedback | `FEEDBACK_UPDATES.md` |
+
 Limitations: mesh links are defined in the seed data (a sensor registered later
 through Part 1 is not wired into the mesh), and, like everything else, mesh state
 and history are in memory and reset when the API restarts.
