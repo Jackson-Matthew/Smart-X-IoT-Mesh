@@ -11,8 +11,7 @@ const MODULES = [
     },
     {
         title: "Network Topology & Mesh Routing",
-        text: "Visualise the mesh and find the most power-efficient route for data. Coming in the final release.",
-        soon: true,
+        text: "Visualise the live mesh, track any node by ID or MAC address, see how the network heals around failures, and query a node's history by time range.",
     },
 ];
 
@@ -63,10 +62,9 @@ function LandingPage({
 
                 <section className="landing-modules">
                     {MODULES.map((m) => (
-                        <article key={m.title} className={"landing-card" + (m.soon ? " soon" : "")}>
+                        <article key={m.title} className="landing-card">
                             <h2>
                                 {m.title}
-                                {m.soon && <small>Final release</small>}
                             </h2>
                             <p>{m.text}</p>
                         </article>
