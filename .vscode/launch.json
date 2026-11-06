@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Starts the .NET API on http://localhost:5217
+            "name": "Smart-X API",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet run --no-launch-profile --urls http://localhost:5217 --environment Development",
+            "cwd": "${workspaceFolder}/Smart-X/backend/Smart-X.Api"
+        },
+        {
+            // Starts the React dashboard on http://localhost:5173 and opens it
+            // in the browser. /api calls are proxied to the API (vite.config.ts).
+            "name": "Smart-X Web",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/Smart-X/frontend/smartx-dashboard",
+            "serverReadyAction": {
+                "pattern": "Local:\\s+(https?://\\S+)",
+                "uriFormat": "%s",
+                "action": "openExternally"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            // Pick this one in the Run and Debug dropdown, then press the green button (F5).
+            "name": "Smart-X (API + Web)",
+            "configurations": ["Smart-X API", "Smart-X Web"],
+            "stopAll": true
+        }
+    ]
+}
