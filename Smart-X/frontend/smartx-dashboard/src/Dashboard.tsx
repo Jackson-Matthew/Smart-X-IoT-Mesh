@@ -4,6 +4,7 @@ import { Icon, type IconName } from "./components/Icons";
 import { Logo } from "./components/Logo";
 import CommandStreamPage from "./pages/CommandStreamPage";
 import IngestionPage from "./pages/IngestionPage";
+import MeshTopologyPage from "./pages/MeshTopologyPage";
 import { getHealth, type HealthResponse } from "./services/api";
 import "./purity.css";
 
@@ -36,13 +37,12 @@ const PILLARS: {
         icon: "bolt",
         enabled: true,
     },
-    // Final PoE: visible but greyed out and not clickable.
     {
         id: "topology",
         label: "Network Topology & Mesh Routing",
         short: "Mesh Topology",
         icon: "mesh",
-        enabled: false,
+        enabled: true,
     },
 ];
 
@@ -96,7 +96,7 @@ function Dashboard({
                                 <Icon name={pillar.icon} />
                             </span>
                             <span className="px-nav-label">{pillar.short}</span>
-                            {!pillar.enabled && <span className="px-soon">Final PoE</span>}
+                            {!pillar.enabled && <span className="px-soon">Soon</span>}
                         </button>
                     ))}
                 </nav>
@@ -153,6 +153,10 @@ function Dashboard({
 
                 <div hidden={active !== "command"}>
                     <CommandStreamPage />
+                </div>
+
+                <div hidden={active !== "topology"}>
+                    <MeshTopologyPage />
                 </div>
             </div>
         </div>
