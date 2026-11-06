@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart-X Project Completion Report</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; color: #1a202c; }
+  h1 { font-size: 20pt; margin: 0 0 4px; }
+  h2 { font-size: 14pt; margin: 26px 0 6px; border-bottom: 2px solid #4fd1c5; padding-bottom: 3px; page-break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 14px 0 2px; page-break-after: avoid; }
+  p { margin: 6px 0; text-align: justify; }
+  .sub { color: #4a5568; margin: 0 0 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 10pt; margin: 8px 0; page-break-inside: avoid; }
+  th, td { border: 1px solid #cbd5e0; padding: 5px 8px; text-align: left; vertical-align: top; line-height: 1.35; }
+  th { background: #edf2f7; }
+  figure { margin: 10px 0; text-align: center; page-break-inside: avoid; }
+  figcaption { font-size: 9.5pt; color: #4a5568; }
+  code { font-family: Consolas, monospace; font-size: 9.5pt; background: #f1f5f9; padding: 0 3px; }
+  .ref { text-indent: -24px; padding-left: 24px; font-size: 10pt; margin: 4px 0; text-align: left; }
+  .pb { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>Smart-X: Project Completion Report</h1>
+<p class="sub">PROG7312 Portfolio of Evidence, Part 3: Network Topology and Mesh Routing<br>
+The in-depth explanation of each Part 3 data structure, with code, is in the README (section 13) of the repository.</p>
+
+<h2>1. Summary of the completed project</h2>
+<p>Smart-X is an IoT operations console made of a .NET 10 Web API and a React and TypeScript dashboard.
+Part 1 built the ingestion gateway: sensor registration, validated telemetry through a generic
+<code>TelemetryPacket&lt;T&gt;</code>, file attachments and a jagged-array history. Part 2 added real-time handling:
+a FIFO queue and a priority queue for alerts, a stack for command undo, dictionaries for O(1) device lookup,
+a HashSet to stop duplicate alerts, a SortedDictionary timeline and a predictive action engine.
+Part 3 finishes the system with the <strong>Network Topology and Mesh Routing</strong> module. It models the
+sensors as a mesh graph, finds connected and failed nodes with BFS and DFS, calculates the most power-efficient
+routing tree with Prim's algorithm and a min-heap, and stores timestamped history in AVL trees so that time
+ranges can be queried without scanning everything. All three modules are now active in the sidebar, and
+Parts 1 and 2 were left working as they were.</p>
+
+<figure>
+<svg width="640" height="170" viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" font-family="Arial" font-size="11">
+  <text x="100" y="14" text-anchor="middle" font-weight="bold">Star topology</text>
+  <g stroke="#a0aec0" stroke-width="2">
+    <line x1="100" y1="90" x2="40" y2="40"/><line x1="100" y1="90" x2="100" y2="35"/><line x1="100" y1="90" x2="160" y2="40"/>
+    <line x1="100" y1="90" x2="40" y2="145"/><line x1="100" y1="90" x2="100" y2="150"/><line x1="100" y1="90" x2="160" y2="145"/>
+  </g>
+  <rect x="86" y="76" width="28" height="28" rx="5" fill="#1a202c"/>
+  <g fill="#38b2ac"><circle cx="40" cy="40" r="9"/><circle cx="100" cy="35" r="9"/><circle cx="160" cy="40" r="9"/><circle cx="40" cy="145" r="9"/><circle cx="100" cy="150" r="9"/><circle cx="160" cy="145" r="9"/></g>
+  <text x="100" y="168" text-anchor="middle" fill="#4a5568">every node needs the gateway in range; one failure at the hub loses everything</text>
+
+  <text x="440" y="14" text-anchor="middle" font-weight="bold">Mesh topology (Smart-X)</text>
+  <g stroke="#cbd5e0" stroke-width="2">
+    <line x1="340" y1="90" x2="400" y2="45"/><line x1="340" y1="90" x2="400" y2="135"/><line x1="400" y1="45" x2="400" y2="135"/>
+    <line x1="400" y1="45" x2="470" y2="70"/><line x1="400" y1="135" x2="470" y2="115"/><line x1="470" y1="70" x2="470" y2="115"/>
+    <line x1="470" y1="70" x2="540" y2="45"/><line x1="470" y1="115" x2="540" y2="135"/><line x1="540" y1="45" x2="540" y2="135"/>
+  </g>
+  <g stroke="#4fd1c5" stroke-width="4">
+    <line x1="340" y1="90" x2="400" y2="45"/><line x1="400" y1="45" x2="470" y2="70"/><line x1="470" y1="70" x2="540" y2="45"/>
+    <line x1="470" y1="70" x2="470" y2="115"/><line x1="470" y1="115" x2="540" y2="135"/><line x1="340" y1="90" x2="400" y2="135"/>
+  </g>
+  <rect x="326" y="76" width="28" height="28" rx="5" fill="#1a202c"/>
+  <g fill="#38b2ac"><circle cx="400" cy="45" r="9"/><circle cx="400" cy="135" r="9"/><circle cx="470" cy="70" r="9"/><circle cx="470" cy="115" r="9"/><circle cx="540" cy="45" r="9"/><circle cx="540" cy="135" r="9"/></g>
+  <text x="440" y="168" text-anchor="middle" fill="#4a5568">packets hop node to node; teal = minimum spanning tree, grey = spare paths</text>
+</svg>
+<figcaption>Figure 1: Star versus mesh topology. The Smart-X Part 3 module models the right-hand structure.</figcaption>
+</figure>
+
+<h2>2. Architectural and algorithmic challenges, and how they were solved</h2>
+
+<h3>2.1 Keeping mesh health independent of the Part 2 disconnect monitor</h3>
+<p>The first idea was to say a mesh node is "down" when the Part 2 <code>DisconnectMonitor</code> flags it. That
+monitor marks any device silent for 60 seconds, so any time the Part 1 simulator was not running, every node
+turned red and a breadth-first search from the gateway reached nothing. The demo became meaningless. I
+separated the two concerns: the mesh service owns its own failure set (seeded with <code>TEMP-002</code>, the sensor
+that never reports) and exposes an endpoint and button to fail or restore a node. The gateway itself cannot be
+failed, because it is the mains-powered link to the server. The mesh was also wired in as new classes
+(<code>MeshSeedService</code>, <code>MeshTopologyService</code>) so the Part 1 and Part 2 seed code did not have to change.</p>
+
+<h3>2.2 What a minimum spanning tree does and does not optimise</h3>
+<p>The brief asks for the MST to show the most power-efficient route. While testing I compared the tree path of
+<code>PUMP-002</code> (77 mW over 7 hops) with its fewest-hops BFS path (53 mW over 4 hops). The MST path was more
+expensive for that one node. That is not a bug: Prim's algorithm minimises the <em>total</em> cost of the links the
+whole network keeps awake (127 mW across 12 links, against 272 mW if all 22 working links stayed on), it does
+not minimise each node's own path. I removed a per-node "power saved" figure I had first added, because it would
+have been misleading, and instead report the network-wide saving in the summary cards and explain the trade-off
+in the README. Understanding this difference between an MST and a shortest-path tree (Dijkstra) was the most
+important algorithmic lesson of Part 3.</p>
+
+<h3>2.3 Making the AVL benchmark honest</h3>
+<p>The page shows how much faster the tree query is than a scan. My first measurement reported 3,287 µs for the
+AVL tree and 1,020 µs for the linear scan, so the "optimised" structure looked slower. The cause was one-off
+JIT compilation on the first call, and the scan was also doing less work because it only counted matches instead
+of building a result list. I changed both paths to build a result, added a warm-up, and averaged 50 runs each.
+The corrected figures were about 5-7 µs for the tree against about 27-42 µs for the scan on 730 readings.
+The more reliable metric is the number of tree nodes visited (69 against 732), which does not depend on the
+machine, so the page shows both.</p>
+
+<h3>2.4 Connecting the C# backend to the React frontend</h3>
+<p>Several integration details needed care. (a) Enums, timestamps and the interface-typed
+<code>ITelemetryPacket.Data</code> must serialise predictably so TypeScript receives plain objects; the existing JSON
+options plus a <code>Record&lt;string, unknown&gt;</code> type kept this simple. (b) The <code>datetime-local</code> inputs
+work in local time while the AVL tree is keyed on UTC, so the page converts through <code>Date</code> to ISO strings
+and the API normalises with <code>ToUniversalTime()</code>. (c) The AVL index is fed from two places, the seeder and the live
+ingestion pipeline, so a lock protects each device's tree. (d) The dashboard keeps all pages mounted, so the
+topology page polls every 8 seconds and refreshes immediately after any action instead of showing stale data.
+(e) Drawing the graph with a plain SVG, using positions held in the seed data, avoided a heavy graph library and
+made node clicks, route highlighting and failure colouring straightforward.</p>
+
+<h3>2.5 Smaller engineering issues</h3>
+<p>Cloning the Part 2 project into a deeply nested scratch folder failed on Windows because of the 260-character
+path limit; enabling <code>core.longpaths</code> and using a short working path fixed it. Duplicate timestamps would have
+overwritten readings in the tree, so the index nudges a clashing timestamp forward by one tick, as the Part 2
+<code>SensorTimeline</code> already did. Finally, I seeded 24 hours of history directly into the trees (about 9,400 readings)
+so range queries can be demonstrated under load without waiting for live data.</p>
+
+<h2>3. Key learnings</h2>
+<table>
+<tr><th style="width:27%">Area</th><th>What I learned, linked to this project</th></tr>
+<tr><td>Choosing a structure for the question</td><td>Each Smart-X feature came from asking which question the operator asks. "Which readings between 14:00 and 16:00?" is a range query, so a sorted tree. "Which devices are still connected?" is reachability, so a graph traversal. "Cheapest way to link everything?" is an MST. A List would have answered all of them, but slowly or with repeated scanning.</td></tr>
+<tr><td>Why balance matters</td><td>Telemetry arrives in timestamp order, the worst case for an unbalanced BST. Seeing 721 readings sit in a tree of height 10, with 711 rotations needed to keep it that way, made the AVL rotations concrete.</td></tr>
+<tr><td>Heaps and greedy algorithms</td><td>Writing the heap by hand (sift up, sift down, parent and child index arithmetic) showed why Prim is O(E log V): the heap removes the "find the cheapest link" scan.</td></tr>
+<tr><td>BFS versus DFS</td><td>Both find the connected set, but BFS also gives fewest-hop distances, which suits failover reporting, while DFS is simpler to explain as "dive then back up". Having both selectable on the page made the difference visible.</td></tr>
+<tr><td>Measuring honestly</td><td>The benchmark mistake in 2.3 taught me to warm up, average, and also report a machine-independent count.</td></tr>
+<tr><td>Generics and clean architecture</td><td>Parts 1 and 2 introduced <code>TelemetryPacket&lt;T&gt;</code> and DI singletons. In Part 3 the same pattern made a reusable <code>AvlTree&lt;TKey,TValue&gt;</code> and let the new modules plug into ingestion with a single added line.</td></tr>
+<tr><td>IoT domain knowledge</td><td>Modelling Zigbee, Thread and ESP-NOW style meshes showed why self-healing matters in the field and why links carry a power cost on battery-powered ESP32 nodes.</td></tr>
+<tr><td>Process</td><td>Working in small commits, building and testing each layer (API with curl, then the UI in a browser) before moving on caught the benchmark and MST-comparison problems early.</td></tr>
+</table>
+
+<h2 class="pb">4. Technology recommendations</h2>
+<p>The current system runs in memory with simulated devices. These additions would take it towards a production
+deployment, and all of them fit the existing .NET 10 and React stack.</p>
+<table>
+<tr><th style="width:21%">Technology</th><th style="width:43%">Benefit for Smart-X</th><th>Why it suits this project</th></tr>
+<tr><td><strong>MQTT broker</strong> (Mosquitto or EMQX, with the MQTTnet client)</td><td>Real ESP32 devices publish telemetry over a lightweight publish/subscribe protocol, replacing simulated HTTP posts.</td><td>MQTTnet is a .NET library; a hosted <code>BackgroundService</code> can subscribe and pass messages into the existing <code>TelemetryService</code> pipeline unchanged.</td></tr>
+<tr><td><strong>Time-series database</strong> (TimescaleDB on PostgreSQL, InfluxDB, or Azure Data Explorer)</td><td>Persistent history that survives restarts, with built-in time-range queries, retention and downsampling. The in-memory AVL trees would remain as a hot cache for recent data.</td><td>EF Core and Npgsql work with TimescaleDB; the <code>ITelemetryRepository</code> interface already isolates storage, so the swap is local.</td></tr>
+<tr><td><strong>SignalR</strong> (ASP.NET Core)</td><td>Pushes alerts, node failures and topology changes to the dashboard instantly instead of 8-10 second polling.</td><td>First-party to ASP.NET Core with an official JavaScript client for React.</td></tr>
+<tr><td><strong>GitHub Actions CI/CD</strong></td><td>Builds the API and dashboard, runs tests and builds Docker images on every push, catching compile errors before submission or deployment.</td><td>The repository already uses GitHub and Docker; the official <code>setup-dotnet</code> and <code>setup-node</code> actions cover both halves.</td></tr>
+<tr><td><strong>Automated tests</strong> (xUnit and Vitest)</td><td>Tests for the AVL balance, range query, BFS/DFS and Prim results would protect the algorithms against regressions. The project currently relies on manual and API testing.</td><td>xUnit is the standard .NET test framework, and the structures are pure classes with no dependencies, so they are easy to test.</td></tr>
+<tr><td><strong>Home Assistant integration</strong></td><td>Lets Smart-X devices appear in a home or building automation hub and use its dashboards and automations.</td><td>Home Assistant accepts MQTT discovery messages, so it builds on the MQTT recommendation above.</td></tr>
+<tr><td><strong>LLM API summaries</strong> (for example the Claude API)</td><td>Turns a day of alerts and failovers into a plain-language summary for operators and suggests likely causes.</td><td>Called through the .NET HttpClient from a scheduled background service; only aggregated alert text needs to be sent, not raw credentials.</td></tr>
+<tr><td><strong>OpenTelemetry with Grafana</strong></td><td>Metrics and traces for the gateway itself (queue depth, processing time, request latency).</td><td>OpenTelemetry has first-party ASP.NET Core instrumentation.</td></tr>
+<tr><td><strong>Kubernetes or Azure Container Apps</strong></td><td>Horizontal scaling of the API for thousands of nodes. State would first move out of memory into the database.</td><td>The system is already containerised with Docker Compose, so the same images deploy there.</td></tr>
+</table>
+
+<h2>References</h2>
+<p class="ref">Adelson-Velsky, G.M. and Landis, E.M. (1962) 'An algorithm for the organization of information', <em>Doklady Akademii Nauk SSSR</em>, 146(2), pp. 263-266.</p>
+<p class="ref">Cormen, T.H., Leiserson, C.E., Rivest, R.L. and Stein, C. (2022) <em>Introduction to algorithms</em>. 4th edn. Cambridge, MA: MIT Press.</p>
+<p class="ref">Espressif Systems (n.d.) <em>ESP-NOW</em> and <em>ESP-MESH</em> documentation. Available at: https://docs.espressif.com (Accessed: 6 November 2026).</p>
+<p class="ref">Home Assistant (n.d.) <em>Home Assistant</em>. Available at: https://www.home-assistant.io/ (Accessed: 6 November 2026).</p>
+<p class="ref">Microsoft (n.d.) <em>ASP.NET Core SignalR overview</em>. Available at: https://learn.microsoft.com/aspnet/core/signalr (Accessed: 6 November 2026).</p>
+<p class="ref">Prim, R.C. (1957) 'Shortest connection networks and some generalizations', <em>Bell System Technical Journal</em>, 36(6), pp. 1389-1401.</p>
+
+</body>
+</html>
