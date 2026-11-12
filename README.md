@@ -3,7 +3,7 @@
 **PROG7312 PoE, Part 3: Network Topology and Mesh Routing (final submission, includes Parts 1 and 2)**
 
 # Video Demo Link
-https://youtu.be/pSdtSUoccQw
+
 #
 
 Smart-X is an operations console for IoT devices (ESP32 sensors, power meters,
@@ -45,7 +45,6 @@ an **AVL tree** for fast time-range queries on sensor history.
 ## 1. Quick start
 
 There are three ways to run it. **Docker is the simplest and is what I recommend
-for marking**, because it needs nothing installed except Docker.
 
 ### Option A: Docker Compose (recommended)
 
@@ -131,8 +130,6 @@ After signing in the sidebar shows the three modules:
 | **Real-Time Command Stream & History** | Part 2 (included and working) |
 | **Network Topology & Mesh Routing** | **Part 3 (this submission, see [section 13](#13-part-3-network-topology-and-mesh-routing))** |
 
-All three pages stay mounted when you switch tabs, so **no state, chart,
-timer or simulator is lost** when moving between modules.
 
 ### The Command Stream page
 
@@ -229,7 +226,7 @@ The dashboard steps need you to be signed in.
 ### 6.1 Simulate a high-priority alert (the quickest demo)
 
 1. Open **Real-Time Command Stream & History**.
-2. Press **⚡ Simulate power spike** (or **💧 Simulate dry soil**) in the *Device Simulator* panel.
+2. Press ** Simulate power spike** (or ** Simulate dry soil**) in the *Device Simulator* panel.
 3. Within about 2 seconds a **critical alert** appears in the *Critical Alert Feed*
    (`PowerSpike on POWER-001`, or `LowMoisture on MOIST-001`), the device card turns
    **Alerting**, and the *Active alerts* counter goes to 1.
@@ -247,7 +244,7 @@ Invoke-RestMethod "$api/api/alerts/status"   # activeAlertKeys contains POWER-00
 ### 6.2 Queue (FIFO) and Priority Queue: the stress test
 
 1. In the Command Stream page scroll to **Queue Stress Test**.
-2. Press **🚀 Run stress test**. It sends **150 normal readings at once and then one
+2. Press ** Run stress test**. It sends **150 normal readings at once and then one
    power spike last**.
 3. Watch:
    * The **Telemetry queue** counter and the **queue depth chart** rise to roughly
@@ -264,7 +261,7 @@ Invoke-RestMethod "$api/api/alerts/status"   # activeAlertKeys contains POWER-00
 
 ### 6.3 HashSet: no duplicate alerts
 
-1. Press **⚡ Simulate power spike**. This sends **three identical bad packets** in a row.
+1. Press ** Simulate power spike**. This sends **three identical bad packets** in a row.
 2. The *Critical Alert Feed* gets **one** `PowerSpike` entry, not three, and
    *Active alerts* shows 1.
 
@@ -301,7 +298,7 @@ Invoke-RestMethod "$api/api/commands/history"
 
 ### 6.5 The whole loop: alert, command, effect, undo
 
-1. Press **💧 Simulate dry soil**. Soil moisture on `MOIST-001` keeps falling,
+1. Press ** Simulate dry soil**. Soil moisture on `MOIST-001` keeps falling,
    drops below 20%, and **one** `LowMoisture` alert is raised.
 2. Press **Pump On** (target `PUMP-001`). The simulated soil now recovers, and
    once it is above 20% the active alert clears.
@@ -367,7 +364,7 @@ from. After that, every real action you take adds to the history.
 
 **See it work:**
 
-1. Press **💧 Simulate dry soil**.
+1. Press ** Simulate dry soil**.
 2. *Suggested Actions* now shows **Search for 'Pump A'** and **Run 'PumpOn' on PUMP-001**
    with a confidence figure and the reason.
 3. Click **Run**; this is a real command, and it is recorded too.
@@ -480,8 +477,6 @@ Data is held **in memory**, so restarting the API resets it.
 
 ---
 
-*Demo video:* **(add the YouTube link here before submitting)**
-
 ## 13. Part 3: Network Topology and Mesh Routing
 
 The third module turns the sensor list into a **mesh network model**. In a mesh,
@@ -505,18 +500,6 @@ immediately (no simulator needs to be running).
 | **Simulate failure** | Takes the tracked node down. The map, counts and routes recompute at once |
 | **Connectivity and self-healing** | Switch between **BFS** and **DFS** from the gateway. Lists connected devices, down nodes with their "hop via" options, isolated nodes, and every route that had to change (old path struck through, new path beside it) |
 | **Historical telemetry log** | Pick a node and a time window (or Last hour / 2 hours / 6 hours / 24 hours) to run an AVL range query. Shows a chart, a table of readings and the query statistics |
-
-**Suggested demo (about 2 minutes)**
-
-1. Open Mesh Topology. `TEMP-002` is already red (it has been silent since seeding)
-   and the "Down nodes" panel shows it can hop via `TEMP-003`, `MOIST-001` or `TEMP-001`.
-2. Search `AA:BB:CC:DD:EE:0D`. The orange path shows `PUMP-002` reaching the gateway
-   in 7 hops for 77 mW.
-3. Click **Simulate failure of this node** on a relay such as `ACT-001` (the busiest hub).
-   The "Routes that had to change" table fills with new paths, and the MST cost rises.
-4. Choose a node in the history log, click **Last 6 hours**, and compare
-   "tree nodes visited" with "a scan checks N".
-5. Click **Restore** to bring the node back.
 
 ### 13.2 The mesh that is modelled
 
