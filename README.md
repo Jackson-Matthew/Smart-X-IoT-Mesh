@@ -99,8 +99,7 @@ runs straight after cloning.
 
 ## 3. Using the application
 
-The sidebar has three pages. All three stay mounted when you switch between them,
-so charts, timers and the simulator keep running.
+The sidebar has three pages.
 
 | Page | What you can do |
 |---|---|
