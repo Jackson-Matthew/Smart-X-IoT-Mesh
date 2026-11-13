@@ -10,6 +10,10 @@ dashboard then lets an operator:
   nodes are down and where traffic can hop instead, find the most power-efficient
   routes, and query a sensor's history by time range.
 
+# Video Demo
+https://youtu.be/Dk4OI_toDdY
+#
+
 | Layer | Technology |
 |---|---|
 | API | ASP.NET Core (.NET 10), controllers + minimal APIs, Swagger |
